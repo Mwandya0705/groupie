@@ -1,0 +1,17 @@
+{
+  "name": "fyp2026-iuu-monitoring",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "mobile": "npm --workspace @fyp/mobile run dev",
+    "web": "npm --workspace @fyp/web run dev",
+    "lint": "npm --workspace @fyp/web run lint"
+  },
+  "devDependencies": {
+    "webidl-conversions": "^8.0.1"
+  }
+}

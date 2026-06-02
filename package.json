@@ -13,5 +13,9 @@
   },
   "devDependencies": {
     "webidl-conversions": "^8.0.1"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "expo": "^56.0.8"
   }
 }

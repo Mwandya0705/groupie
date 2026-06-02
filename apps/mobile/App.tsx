@@ -3,6 +3,9 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from "expo-status-bar";
 import { registerRootComponent } from 'expo';
 import { RootNavigator } from "./src/navigation/RootNavigator";
+import { Buffer } from "buffer";
+(global as any).Buffer = (global as any).Buffer || Buffer;
+
 
 function App() {
   return (

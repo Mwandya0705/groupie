@@ -2,7 +2,6 @@
   "expo": {
     "name": "IUU Patrol Mobile",
     "slug": "iuu-patrol-mobile",
-    "entryPoint": "./App.tsx",
     "scheme": "iuu-patrol-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -26,6 +25,9 @@
       "eas": {
         "projectId": "replace-with-eas-project-id"
       }
-    }
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
   }
 }

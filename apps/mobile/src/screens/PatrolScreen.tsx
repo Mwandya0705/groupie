@@ -42,7 +42,9 @@ export function PatrolScreen({ activePatrolId, userName, route, setRoute, onEndP
         const point: RoutePoint = { ...coords, timestamp: new Date().toISOString() };
         const nextRoute = [...route, point];
         setRoute(nextRoute);
-        if (activePatrolId && !simulateOffline) {
+        
+        const isLocalPatrol = activePatrolId?.startsWith('local_') || activePatrolId?.startsWith('sim_');
+        if (activePatrolId && !isLocalPatrol && !simulateOffline) {
           await updatePatrolRoute(activePatrolId, nextRoute);
         }
       } catch {
@@ -56,7 +58,8 @@ export function PatrolScreen({ activePatrolId, userName, route, setRoute, onEndP
     setIsTracking(false);
     setStatus("Finalizing patrol...");
     try {
-      if (activePatrolId && !simulateOffline) {
+      const isLocalPatrol = activePatrolId?.startsWith('local_') || activePatrolId?.startsWith('sim_');
+      if (activePatrolId && !isLocalPatrol && !simulateOffline) {
         await endPatrol(activePatrolId, route);
       }
       await onEndPatrol();

@@ -148,28 +148,57 @@ export function RootNavigator() {
     setPendingCount(items.length);
   };
 
+  function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(new Error("Database connection timed out"));
+      }, ms);
+
+      promise
+        .then((res) => {
+          clearTimeout(timer);
+          resolve(res);
+        })
+        .catch((err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
+  }
+
   const startPatrol = async () => {
+    console.log("[startPatrol] Clicked start mission");
     if (!userId) {
+      console.log("[startPatrol] No userId found!");
       setStatus("Login required");
       return;
     }
 
+    console.log("[startPatrol] userId:", userId, "isOnline:", isOnline, "simulateOffline:", simulateOffline);
     if (!simulateOffline && isOnline) {
       try {
-        const patrolId = await createPatrol(userId, {
-          patrol_type: patrolType,
-          start_time: new Date().toISOString(),
-          route: []
-        });
+        console.log("[startPatrol] Attempting online patrol creation with a 4s timeout...");
+        const patrolId = await withTimeout(
+          createPatrol(userId, {
+            patrol_type: patrolType,
+            start_time: new Date().toISOString(),
+            route: []
+          }),
+          4000
+        );
+        console.log("[startPatrol] Online patrol created with ID:", patrolId);
         setActivePatrolId(patrolId);
         setRoute([]);
         setStatus("Patrol synchronized");
         return;
-      } catch (err) {
-        // Fallback
+      } catch (err: any) {
+        console.error("[startPatrol] Online patrol creation failed:", err);
+        setStatus(`Sync failed: ${err?.message || err}. Falling back to offline...`);
+        // We do NOT return here, so it falls back to local creation below!
       }
     }
 
+    console.log("[startPatrol] Creating local/offline patrol...");
     const localId = `local_patrol_${Date.now()}`;
     setActivePatrolId(localId);
     setRoute([]);

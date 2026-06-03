@@ -167,7 +167,7 @@ export function MissionScreen({ userId, userName, isOnline, simulateOffline, set
 
       <IncidentScreen
         activePatrolId={activePatrolId}
-        simulateOffline={connectionLost}
+        simulateOffline={simulateOffline}
         officer={userName}
         onReported={onPendingChanged}
       />

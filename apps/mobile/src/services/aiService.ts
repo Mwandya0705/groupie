@@ -2,13 +2,13 @@ import { AiAnalysis } from "../types/domain";
 
 /**
  * OpenAI-backed analysis + report generation for the patrol app.
- * Model: gpt-4o-mini (vision-capable). Key is read from EXPO_PUBLIC_OPENAI_KEY.
+ * Model: gpt-4.1-mini (vision-capable). Key is read from EXPO_PUBLIC_OPENAI_KEY.
  *
  * SECURITY: the key ships in the client bundle. Acceptable for an FYP/MVP;
  * for production move these calls behind a server.
  */
 const OPENAI_KEY = process.env.EXPO_PUBLIC_OPENAI_KEY as string | undefined;
-const MODEL = "gpt-4o-mini";
+const MODEL = "gpt-4.1-mini";
 const ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
 export type EvidenceInput = {

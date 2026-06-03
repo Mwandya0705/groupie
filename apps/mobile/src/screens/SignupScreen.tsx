@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { UserPlus } from "lucide-react-native";
 import { signUp } from "../services/authService";
 import { supabase } from "../services/supabase";
+import { Screen, Txt, Eyebrow, Button, Field } from "../components";
+import { spacing, type } from "../theme";
+import { useTheme } from "../theme/ThemeContext";
 
 type Props = {
   onSignedUp: () => void;
@@ -9,9 +13,7 @@ type Props = {
 };
 
 export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
-  const { width } = useWindowDimensions();
-  const isLargeScreen = width > 768;
-
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -21,25 +23,23 @@ export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
 
   const handleSignUp = async () => {
     if (!fullName || !username) {
-      setError("Name and Username are required");
+      setError("Name and username are required");
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      // Check username uniqueness
-      const { data: existing } = await supabase.from("profiles").select("id").eq("username", username).maybeSingle();
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .maybeSingle();
       if (existing) {
         setError("This username is already taken");
         setLoading(false);
         return;
       }
-
-      await signUp(email, password, {
-        full_name: fullName,
-        username: username,
-        role: "operator"
-      });
+      await signUp(email, password, { full_name: fullName, username, role: "operator" });
       onSignedUp();
     } catch (err) {
       setError((err as Error).message);
@@ -50,12 +50,13 @@ export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
 
   const handleGuestAccess = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const guestId = `guest_${Math.floor(Math.random() * 10000)}`;
+      const guestId = `guest_${Math.floor(Math.random() * 100000)}`;
       await signUp(`${guestId}@guest.iuu`, "GuestPassword123!", {
         full_name: "Anonymous Guest",
-        username: "Guest",
-        role: "guest"
+        username: guestId,
+        role: "guest",
       });
       onSignedUp();
     } catch (err) {
@@ -66,42 +67,29 @@ export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.inner, { width: isLargeScreen ? 400 : "100%" }]}>
-        <Text style={[styles.title, isLargeScreen && { textAlign: "center", fontSize: 32, marginBottom: 12 }]}>
-          Officer Registration
-        </Text>
-        <TextInput placeholder="Full Name" style={styles.input} value={fullName} onChangeText={setFullName} textContentType="name" />
-        <TextInput placeholder="Username" style={styles.input} value={username} onChangeText={setUsername} autoCapitalize="none" textContentType="username" />
-        <TextInput placeholder="Email" style={styles.input} value={email} onChangeText={setEmail} autoCapitalize="none" textContentType="emailAddress" autoComplete="email" />
-        <TextInput placeholder="Password" style={styles.input} secureTextEntry value={password} onChangeText={setPassword} textContentType="newPassword" autoComplete="password-new" />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        
-        <View style={{ gap: 10 }}>
-          <Pressable style={styles.button} onPress={handleSignUp} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Create Account</Text>}
-          </Pressable>
-          
-          <Pressable style={[styles.button, { backgroundColor: "#64748b" }]} onPress={handleGuestAccess} disabled={loading}>
-            <Text style={styles.buttonText}>Proceed as Guest</Text>
-          </Pressable>
+    <Screen contentStyle={{ flexGrow: 1, justifyContent: "center", gap: spacing.lg }}>
+      <View style={{ gap: spacing.xs }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
+          <UserPlus color={colors.accent} size={26} />
+          <Txt variant="displayLg">Register</Txt>
         </View>
+        <Txt variant="body" color={colors.inkMuted}>Enrol a new patrol officer device.</Txt>
+      </View>
 
-        <Pressable onPress={onBackToLogin}>
-          <Text style={styles.link}>Already have an account? Sign in</Text>
+      <View style={{ gap: spacing.md }}>
+        <Field label="Full name" placeholder="Jane Officer" value={fullName} onChangeText={setFullName} textContentType="name" />
+        <Field label="Username" placeholder="j.officer" value={username} onChangeText={setUsername} autoCapitalize="none" textContentType="username" />
+        <Field label="Email" placeholder="you@agency.go" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" textContentType="emailAddress" autoComplete="email" />
+        <Field label="Password" placeholder="Create a strong password" value={password} onChangeText={setPassword} secureTextEntry textContentType="newPassword" autoComplete="password-new" />
+        {error ? <Text style={[type.bodySm, { color: colors.danger }]}>{error}</Text> : null}
+
+        <Button label="Create account" onPress={handleSignUp} loading={loading} full />
+        <Button label="Continue as guest" onPress={handleGuestAccess} variant="secondary" disabled={loading} full />
+
+        <Pressable onPress={onBackToLogin} style={{ alignItems: "center", paddingVertical: spacing.sm }}>
+          <Eyebrow color={colors.inkMuted}>Already enrolled? Sign in</Eyebrow>
         </Pressable>
       </View>
-    </View>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  inner: { gap: 14 },
-  title: { fontSize: 24, fontWeight: "700" },
-  input: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 8, padding: 14, backgroundColor: "#fff", fontSize: 16 },
-  button: { backgroundColor: "#0f766e", padding: 16, borderRadius: 8, alignItems: "center" },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  link: { textAlign: "center", color: "#1d4ed8", marginTop: 8 },
-  error: { color: "#b91c1c", textAlign: "center" }
-});

@@ -81,23 +81,23 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-[#060e17] p-6">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-slate-800 bg-[#0d1b2a] p-8 shadow-2xl">
+    <main className="flex min-h-screen w-full items-center justify-center bg-canvas p-6">
+      <div className="w-full max-w-md space-y-8 rounded-2xl border border-hairline bg-surface p-8 shadow-2xl">
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-500/10 text-teal-400">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent">
             <Shield className="h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Join IUU Surveillance</h1>
-          <p className="mt-2 text-sm text-slate-400">Create your officer or guest account</p>
+          <h1 className="text-2xl font-bold text-ink">Join IUU Surveillance</h1>
+          <p className="mt-2 text-sm text-inkmuted">Create your officer or guest account</p>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Full Name</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-inkmuted">Full Name</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-inkmuted" />
               <input 
-                className="w-full rounded-lg border border-slate-800 bg-[#060e17] py-2.5 pl-10 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-teal-500/50" 
+                className="w-full rounded-lg border border-hairline bg-canvas py-2.5 pl-10 pr-4 text-ink placeholder-inkmuted outline-none focus:ring-2 focus:ring-accent/50" 
                 placeholder="John Doe" 
                 value={fullName} 
                 onChange={(e) => setFullName(e.target.value)} 
@@ -107,11 +107,11 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Username</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-inkmuted">Username</label>
             <div className="relative">
-              <Activity className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Activity className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-inkmuted" />
               <input 
-                className="w-full rounded-lg border border-slate-800 bg-[#060e17] py-2.5 pl-10 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-teal-500/50" 
+                className="w-full rounded-lg border border-hairline bg-canvas py-2.5 pl-10 pr-4 text-ink placeholder-inkmuted outline-none focus:ring-2 focus:ring-accent/50" 
                 placeholder="johndoe88" 
                 value={username} 
                 onChange={(e) => setUsername(e.target.value)} 
@@ -121,11 +121,11 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Email Address</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-inkmuted">Email Address</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-inkmuted" />
               <input 
-                className="w-full rounded-lg border border-slate-800 bg-[#060e17] py-2.5 pl-10 pr-4 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-teal-500/50" 
+                className="w-full rounded-lg border border-hairline bg-canvas py-2.5 pl-10 pr-4 text-ink placeholder-inkmuted outline-none focus:ring-2 focus:ring-accent/50" 
                 placeholder="admin@iuu.surveillance" 
                 type="email"
                 value={email} 
@@ -136,11 +136,11 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Password</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-inkmuted">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-inkmuted" />
               <input
-                className="w-full rounded-lg border border-slate-800 bg-[#060e17] py-2.5 pl-10 pr-12 text-white placeholder-slate-600 outline-none focus:ring-2 focus:ring-teal-500/50"
+                className="w-full rounded-lg border border-hairline bg-canvas py-2.5 pl-10 pr-12 text-ink placeholder-inkmuted outline-none focus:ring-2 focus:ring-accent/50"
                 placeholder="••••••••"
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -150,7 +150,7 @@ export default function SignupPage() {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-inkmuted hover:text-inkmuted transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -158,9 +158,9 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Assigned Role</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-inkmuted">Assigned Role</label>
             <select 
-              className="w-full rounded-lg border border-slate-800 bg-[#060e17] py-2.5 px-3 text-white outline-none focus:ring-2 focus:ring-teal-500/50"
+              className="w-full rounded-lg border border-hairline bg-canvas py-2.5 px-3 text-ink outline-none focus:ring-2 focus:ring-accent/50"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
@@ -177,7 +177,7 @@ export default function SignupPage() {
 
           <div className="space-y-3 pt-2">
             <button 
-              className="w-full rounded-lg bg-teal-600 py-3 font-bold text-white transition-all hover:bg-teal-500 disabled:opacity-50" 
+              className="w-full rounded-lg bg-accent py-3 font-bold text-ink transition-all hover:bg-accent disabled:opacity-50" 
               type="submit"
               disabled={loading}
             >
@@ -187,7 +187,7 @@ export default function SignupPage() {
             <button 
               onClick={handleGuestAccess}
               type="button"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800/30 py-3 font-bold text-slate-300 transition-all hover:bg-slate-800 hover:text-white disabled:opacity-50"
+              className="w-full rounded-lg border border-hairline bg-surface2/30 py-3 font-bold text-inkmuted transition-all hover:bg-surface2 hover:text-ink disabled:opacity-50"
               disabled={loading}
             >
               Proceed as Guest
@@ -195,8 +195,8 @@ export default function SignupPage() {
           </div>
         </form>
 
-        <div className="text-center text-sm text-slate-500">
-          Already have an account? <a href="/login" className="text-teal-400 hover:underline">Log in</a>
+        <div className="text-center text-sm text-inkmuted">
+          Already have an account? <a href="/login" className="text-accent hover:underline">Log in</a>
         </div>
       </div>
     </main>

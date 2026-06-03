@@ -77,7 +77,7 @@ function UserLocationTracker() {
       L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
       L.marker(e.latlng, {
         icon: L.divIcon({
-          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-white shadow-lg shadow-blue-500/50',
+          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-ink shadow-lg shadow-blue-500/50',
           iconSize: [16, 16]
         })
       }).addTo(map);
@@ -133,8 +133,8 @@ export default function MapView({ patrols, incidents, focusedLocation = null }: 
         >
           <Popup>
             <div className="p-1">
-              <p className="font-bold text-slate-900">{incident.type}</p>
-              <p className="text-xs text-slate-500">
+              <p className="font-bold text-ink">{incident.type}</p>
+              <p className="text-xs text-inkmuted">
                 Coords: {incident.latitude.toFixed(4)}, {incident.longitude.toFixed(4)}
               </p>
               <a 

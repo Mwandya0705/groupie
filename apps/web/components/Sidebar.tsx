@@ -71,11 +71,11 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-72 border-r border-slate-800 bg-[#0a1929] text-slate-300">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-72 border-r border-hairline bg-surface text-inkmuted">
       <div className="flex h-full flex-col px-4 py-6">
         {/* Header */}
         <div className="mb-8 px-2 flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-inkmuted">
             {userProfile?.role === 'admin' ? "System Administrator" : "Verifying Access..."}
           </h2>
         </div>
@@ -98,11 +98,11 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                   isActive 
-                    ? "bg-[#112233] text-teal-400 shadow-sm" 
-                    : "hover:bg-slate-800/50 hover:text-white"
+                    ? "bg-surface2 text-accent shadow-sm" 
+                    : "hover:bg-surface2/50 hover:text-ink"
                 )}
               >
-                <Icon className={cn("h-5 w-5", isActive ? "text-teal-400" : "text-slate-500")} />
+                <Icon className={cn("h-5 w-5", isActive ? "text-accent" : "text-inkmuted")} />
                 {item.label}
               </Link>
             );
@@ -110,14 +110,14 @@ export function Sidebar() {
         </nav>
 
         {/* Footer / User Profile */}
-        <div className="mt-auto border-t border-slate-800 pt-6">
+        <div className="mt-auto border-t border-hairline pt-6">
           <div className="flex items-center gap-3 px-2">
-            <div className="h-9 w-9 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-400 font-bold text-xs border border-teal-500/20 shadow-inner">
+            <div className="h-9 w-9 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold text-xs border border-accent/20 shadow-inner">
               {userProfile?.full_name?.slice(0, 2).toUpperCase() || "??"}
             </div>
             <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-semibold text-slate-200 truncate">{userProfile?.full_name || "Administrator"}</span>
-              <span className="text-[10px] uppercase font-bold tracking-tighter text-teal-500/70">{userProfile?.role || "Authenticating..."}</span>
+              <span className="text-sm font-semibold text-ink truncate">{userProfile?.full_name || "Administrator"}</span>
+              <span className="text-[10px] uppercase font-bold tracking-tighter text-accent/70">{userProfile?.role || "Authenticating..."}</span>
             </div>
           </div>
         </div>

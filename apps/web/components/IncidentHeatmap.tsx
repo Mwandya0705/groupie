@@ -67,7 +67,7 @@ function UserLocationTracker() {
       L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
       L.marker(e.latlng, {
         icon: L.divIcon({
-          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-white shadow-lg shadow-blue-500/50',
+          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-ink shadow-lg shadow-blue-500/50',
           iconSize: [16, 16]
         })
       }).addTo(map);
@@ -97,7 +97,7 @@ export default function IncidentHeatmap({ incidents, center: propCenter, zoom: p
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="h-full w-full bg-[#060e17]" />;
+  if (!isMounted) return <div className="h-full w-full bg-canvas" />;
 
   const heatPoints: [number, number, number][] = incidents.map((inc) => [
     inc.latitude,
@@ -132,9 +132,9 @@ export default function IncidentHeatmap({ incidents, center: propCenter, zoom: p
           >
             <Popup>
               <div className="p-2">
-                <p className="font-bold text-slate-900 capitalize">{incident.type.replace('_', ' ')}</p>
-                <p className="text-xs text-slate-600">{incident.description}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{new Date(incident.created_at).toLocaleDateString()}</p>
+                <p className="font-bold text-ink capitalize">{incident.type.replace('_', ' ')}</p>
+                <p className="text-xs text-inkmuted">{incident.description}</p>
+                <p className="text-[10px] text-inkmuted mt-1">{new Date(incident.created_at).toLocaleDateString()}</p>
               </div>
             </Popup>
           </Marker>

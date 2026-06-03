@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { StyleSheet, View, Pressable, Text } from "react-native";
+import { ShieldCheck } from "lucide-react-native";
 import { signIn } from "../services/authService";
+import { Screen, Txt, Eyebrow, Button, Field, SpotlightCard } from "../components";
+import { spacing, type } from "../theme";
+import { useTheme } from "../theme/ThemeContext";
 
 type Props = {
   onSignedIn: () => void;
@@ -8,9 +12,7 @@ type Props = {
 };
 
 export function LoginScreen({ onSignedIn, onGoToSignUp }: Props) {
-  const { width } = useWindowDimensions();
-  const isLargeScreen = width > 768;
-
+  const { colors } = useTheme();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,48 +32,56 @@ export function LoginScreen({ onSignedIn, onGoToSignUp }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.inner, { width: isLargeScreen ? 400 : "100%" }]}>
-        <Text style={[styles.title, isLargeScreen && { textAlign: "center", fontSize: 32, marginBottom: 12 }]}>
-          Officer Authentication
-        </Text>
-        <TextInput 
-          placeholder="Username or Email" 
-          style={styles.input} 
-          value={identifier} 
-          onChangeText={setIdentifier} 
-          autoCapitalize="none" 
+    <Screen contentStyle={{ flexGrow: 1, justifyContent: "center", gap: spacing.lg }}>
+      <SpotlightCard variant="ocean" style={{ alignItems: "flex-start", gap: spacing.sm }}>
+        <View style={styles.glyph}>
+          <ShieldCheck color="#fff" size={26} />
+        </View>
+        <Txt variant="displayLg" color="#fff">Mission{"\n"}Control</Txt>
+        <Txt variant="body" color="rgba(255,255,255,0.85)">
+          Maritime IUU surveillance &amp; patrol command.
+        </Txt>
+      </SpotlightCard>
+
+      <View style={{ gap: spacing.md }}>
+        <Eyebrow>Officer authentication</Eyebrow>
+        <Field
+          label="Username or email"
+          placeholder="j.officer or you@agency.go"
+          value={identifier}
+          onChangeText={setIdentifier}
+          autoCapitalize="none"
           textContentType="username"
           autoComplete="username"
         />
-        <TextInput 
-          placeholder="Security Passcode" 
-          style={styles.input} 
-          secureTextEntry 
-          value={password} 
-          onChangeText={setPassword} 
+        <Field
+          label="Security passcode"
+          placeholder="••••••••"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
           textContentType="password"
           autoComplete="password"
         />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Pressable style={styles.button} onPress={handleLogin} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Authenticate Session</Text>}
-        </Pressable>
-        <Pressable onPress={onGoToSignUp}>
-          <Text style={styles.link}>Create account</Text>
+        {error ? <Text style={[type.bodySm, { color: colors.danger }]}>{error}</Text> : null}
+
+        <Button label="Authenticate session" onPress={handleLogin} loading={loading} full />
+        <Pressable onPress={onGoToSignUp} style={{ alignItems: "center", paddingVertical: spacing.sm }}>
+          <Text style={[type.bodySm, { color: colors.accent }]}>Create an account</Text>
         </Pressable>
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
-  inner: { gap: 14 },
-  title: { fontSize: 24, fontWeight: "700" },
-  input: { borderWidth: 1, borderColor: "#cbd5e1", borderRadius: 8, padding: 14, backgroundColor: "#fff", fontSize: 16 },
-  button: { backgroundColor: "#0f766e", padding: 16, borderRadius: 8, alignItems: "center" },
-  buttonText: { color: "#fff", fontWeight: "600", fontSize: 16 },
-  link: { textAlign: "center", color: "#1d4ed8", marginTop: 8 },
-  error: { color: "#b91c1c", textAlign: "center" }
+  glyph: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: spacing.xs,
+  },
 });

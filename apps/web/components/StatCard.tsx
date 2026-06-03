@@ -17,23 +17,23 @@ export function StatCard({ label, value, icon: Icon, trend, trendUp }: Props) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:border-blue-100"
+      className="relative overflow-hidden rounded-2xl border border-hairline bg-surface p-6 shadow-sm transition-all hover:shadow-xl hover:border-blue-100"
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{label}</p>
-          <p className="mt-4 text-3xl font-bold text-slate-900 tabular-nums">{value}</p>
+          <p className="text-sm font-medium text-inkmuted uppercase tracking-wider">{label}</p>
+          <p className="mt-4 text-3xl font-bold text-ink tabular-nums">{value}</p>
           
           {trend && (
             <div className={`mt-2 flex items-center text-xs font-bold ${trendUp ? "text-emerald-500" : "text-amber-500"}`}>
               {trendUp ? "↑" : "↓"} {trend}
-              <span className="ml-1 font-normal text-slate-400">vs last month</span>
+              <span className="ml-1 font-normal text-inkmuted">vs last month</span>
             </div>
           )}
         </div>
         
         {Icon && (
-          <div className="rounded-xl bg-slate-50 p-3 text-blue-600 transition-colors group-hover:bg-blue-50 group-hover:text-blue-700">
+          <div className="rounded-xl bg-canvas p-3 text-blue-600 transition-colors group-hover:bg-blue-50 group-hover:text-blue-700">
             <Icon size={24} />
           </div>
         )}

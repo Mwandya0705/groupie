@@ -31,7 +31,7 @@ export default function Pagination({ totalPages, currentPage }: PaginationProps)
       <button
         onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        className="p-2 rounded-lg bg-[#0d1b2a] border border-slate-800 text-slate-400 disabled:opacity-30 hover:text-white transition-colors"
+        className="p-2 rounded-lg bg-surface border border-hairline text-inkmuted disabled:opacity-30 hover:text-ink transition-colors"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
@@ -43,8 +43,8 @@ export default function Pagination({ totalPages, currentPage }: PaginationProps)
             onClick={() => handlePageChange(page)}
             className={`h-10 w-10 rounded-lg border text-sm font-bold transition-all ${
               currentPage === page
-                ? "bg-teal-600 border-teal-500 text-white shadow-[0_0_15px_rgba(20,184,166,0.3)]"
-                : "bg-[#0d1b2a] border-slate-800 text-slate-500 hover:text-white hover:border-slate-700"
+                ? "bg-accent border-accent text-ink shadow-[0_0_15px_rgba(20,184,166,0.3)]"
+                : "bg-surface border-hairline text-inkmuted hover:text-ink hover:border-hairline"
             }`}
           >
             {page}
@@ -55,7 +55,7 @@ export default function Pagination({ totalPages, currentPage }: PaginationProps)
       <button
         onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className="p-2 rounded-lg bg-[#0d1b2a] border border-slate-800 text-slate-400 disabled:opacity-30 hover:text-white transition-colors"
+        className="p-2 rounded-lg bg-surface border border-hairline text-inkmuted disabled:opacity-30 hover:text-ink transition-colors"
       >
         <ChevronRight className="h-5 w-5" />
       </button>

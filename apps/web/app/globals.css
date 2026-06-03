@@ -3,6 +3,55 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Shared design tokens — same system as the mobile app (Framer dark canvas).
+  Stored as "R G B" triplets so Tailwind's rgb(var(--x) / <alpha>) works.
+  Default = dark. `.light` on <html> switches to light mode.
+*/
+:root,
+.dark {
+  --canvas: 9 9 9;
+  --surface: 20 20 20;
+  --surface-2: 28 28 28;
+  --surface-3: 36 36 36;
+  --ink: 255 255 255;
+  --ink-muted: 153 153 153;
+  --hairline: 38 38 38;
+  --accent: 0 153 255;
+
+  color-scheme: dark;
+}
+
+.light {
+  --canvas: 247 248 250;
+  --surface: 255 255 255;
+  --surface-2: 241 242 244;
+  --surface-3: 232 234 237;
+  --ink: 10 10 10;
+  --ink-muted: 92 99 107;
+  --hairline: 226 229 233;
+  --accent: 0 122 217;
+
+  color-scheme: light;
+}
+
+html {
+  background-color: rgb(var(--canvas));
+}
+
 body {
-  @apply bg-slate-50 text-slate-900;
+  background-color: rgb(var(--canvas));
+  color: rgb(var(--ink));
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.011em;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Display headings get the Framer-style tight negative tracking. */
+h1, h2, h3 {
+  letter-spacing: -0.03em;
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.3);
 }

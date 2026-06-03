@@ -1,172 +1,161 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Database, CloudUpload, Trash2, Shield, Zap, MapPin, Clock, ArrowLeft } from "lucide-react-native";
-import { getPendingItems, removePendingItem, syncItem } from "../store/offlineStore";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CloudUpload, Trash2, Shield, Zap, MapPin, Clock, Database } from "lucide-react-native";
+import { getPendingItems, removePendingItem, syncItem, syncPendingData } from "../store/offlineStore";
 import { PendingItem } from "../types/domain";
+import { Card, Txt, Eyebrow, Button, StatusBadge } from "../components";
+import { radius, spacing, Palette } from "../theme";
+import { useTheme } from "../theme/ThemeContext";
 
 type Props = {
   userId: string;
-  onBack: () => void;
+  isOnline: boolean;
+  onChanged: () => void;
 };
 
-export function PendingDataScreen({ userId, onBack }: Props) {
+export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const [items, setItems] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
 
-  useEffect(() => {
-    loadItems();
+  const load = useCallback(async () => {
+    setItems(await getPendingItems());
+    setLoading(false);
   }, []);
 
-  const loadItems = async () => {
-    const data = await getPendingItems();
-    setItems(data);
-    setLoading(false);
-  };
+  useEffect(() => { load(); }, [load]);
 
-  const handleSyncItem = async (item: PendingItem) => {
+  const syncOne = async (item: PendingItem) => {
     if (!item.id) return;
-    setSyncingId(item.id);
+    if (!isOnline) { Alert.alert("Offline", "Reconnect to sync this report."); return; }
+    setBusyId(item.id);
     try {
       await syncItem(item, userId);
       await removePendingItem(item.id);
-      await loadItems();
-      Alert.alert("Success", "Report synchronized successfully");
-    } catch (err: any) {
-      Alert.alert("Sync Failed", "Check your connection and try again.");
+      await load();
+      onChanged();
+    } catch {
+      Alert.alert("Sync failed", "Check your connection and try again.");
     } finally {
-      setSyncingId(null);
+      setBusyId(null);
     }
   };
 
-  const handleDeleteItem = async (item: PendingItem) => {
-    if (!item.id) return;
-    Alert.alert(
-      "Delete Report",
-      "Are you sure you want to permanently discard this report?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive",
-          onPress: async () => {
-            await removePendingItem(item.id!);
-            await loadItems();
-          }
-        }
-      ]
-    );
+  const syncAll = async () => {
+    if (!isOnline) { Alert.alert("Offline", "Reconnect to sync the vault."); return; }
+    setSyncingAll(true);
+    try {
+      const res = await syncPendingData(userId);
+      await load();
+      onChanged();
+      Alert.alert("Sync complete", `Uploaded ${res.attempted - res.failed} of ${res.attempted} reports.`);
+    } finally {
+      setSyncingAll(false);
+    }
   };
 
-  const renderItem = ({ item }: { item: PendingItem }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardInfo}>
-          <View style={[styles.badge, { backgroundColor: item.kind === 'patrol' ? 'rgba(56, 189, 248, 0.1)' : 'rgba(168, 85, 247, 0.1)' }]}>
-            {item.kind === 'patrol' ? <Shield color="#38bdf8" size={12} /> : <Zap color="#a855f7" size={12} />}
-            <Text style={[styles.badgeText, { color: item.kind === 'patrol' ? '#38bdf8' : '#a855f7' }]}>
-              {item.kind.toUpperCase()}
-            </Text>
-          </View>
-          <View style={styles.timestampRow}>
-             <Clock color="#94a3b8" size={12} />
-             <Text style={styles.timestampText}>{new Date(item.timestamp!).toLocaleTimeString()}</Text>
-          </View>
-        </View>
-        <Pressable onPress={() => handleDeleteItem(item)} style={styles.deleteBtn}>
-          <Trash2 color="#ef4444" size={18} />
-        </Pressable>
-      </View>
-
-      <Text style={styles.description} numberOfLines={2}>
-        {item.kind === 'incident' ? item.payload.description : `Patrol with ${item.payload.route.length} GPS points capured locally.`}
-      </Text>
-
-      <View style={styles.cardFooter}>
-        <View style={styles.locationRow}>
-           <MapPin color="#64748b" size={12} />
-           <Text style={styles.locationText}>
-             {item.kind === 'incident' ? `${item.payload.latitude.toFixed(4)}, ${item.payload.longitude.toFixed(4)}` : "Local Tracking Route"}
-           </Text>
-        </View>
-        <Pressable 
-          disabled={syncingId !== null} 
-          onPress={() => handleSyncItem(item)}
-          style={[styles.syncBtn, syncingId === item.id && styles.syncBtnActive]}
-        >
-          {syncingId === item.id ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <>
-              <CloudUpload color="#fff" size={16} />
-              <Text style={styles.syncBtnText}>SYNC</Text>
-            </>
-          )}
-        </Pressable>
-      </View>
-    </View>
-  );
+  const remove = (item: PendingItem) => {
+    if (!item.id) return;
+    Alert.alert("Discard report", "Permanently delete this vaulted report?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: async () => { await removePendingItem(item.id!); await load(); onChanged(); } },
+    ]);
+  };
 
   return (
-    <LinearGradient colors={['#0f172a', '#1e293b']} style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={onBack} style={styles.backBtn}>
-          <ArrowLeft color="#fff" size={24} />
-        </Pressable>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.canvas }}
+      contentContainerStyle={{ padding: spacing.lg, paddingTop: insets.top + spacing.sm, paddingBottom: 120, gap: spacing.md }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
         <View>
-          <Text style={styles.heading}>Pending Reports</Text>
-          <Text style={styles.subheading}>{items.length} ITEMS WAITING FOR SYNC</Text>
+          <Eyebrow>Offline storage</Eyebrow>
+          <Txt variant="displayLg">Vault</Txt>
         </View>
+        <StatusBadge label={`${items.length} QUEUED`} tone={items.length > 0 ? "warning" : "success"} />
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#38bdf8" />
-        </View>
-      ) : items.length === 0 ? (
-        <View style={styles.emptyContainer}>
-           <Database color="#334155" size={64} strokeWidth={1} />
-           <Text style={styles.emptyText}>Vault is Empty</Text>
-           <Text style={styles.emptySubtext}>All local reports have been synced to the Command Center.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={items}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id!}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+      {items.length > 0 && (
+        <Button
+          label={isOnline ? "Sync all to dashboard" : "Reconnect to sync"}
+          onPress={syncAll}
+          loading={syncingAll}
+          disabled={!isOnline}
+          icon={<CloudUpload color={colors.onPrimary} size={18} />}
+          full
         />
       )}
-    </LinearGradient>
+
+      {loading ? (
+        <ActivityIndicator color={colors.accent} style={{ marginTop: spacing.xxl }} />
+      ) : items.length === 0 ? (
+        <Card style={{ alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xxl }}>
+          <Database color={colors.inkFaint} size={48} strokeWidth={1.4} />
+          <Txt variant="headline">Vault is empty</Txt>
+          <Txt variant="bodySm" color={colors.inkMuted} style={{ textAlign: "center" }}>
+            All local reports have synced to the Command Center.
+          </Txt>
+        </Card>
+      ) : (
+        items.map((item) => (
+          <Card key={item.id} style={{ gap: spacing.sm }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <StatusBadge
+                label={item.kind.toUpperCase()}
+                tone={item.kind === "patrol" ? "accent" : "warning"}
+              />
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <Clock color={colors.inkFaint} size={13} />
+                <Txt variant="caption" color={colors.inkMuted}>{new Date(item.timestamp!).toLocaleTimeString()}</Txt>
+              </View>
+            </View>
+
+            <Txt variant="body" color={colors.inkMuted} numberOfLines={2}>
+              {item.kind === "incident"
+                ? item.payload.description || item.payload.type
+                : `Patrol with ${item.payload.route.length} GPS points captured locally.`}
+            </Txt>
+
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                {item.kind === "patrol" ? <Shield color={colors.inkFaint} size={13} /> : <MapPin color={colors.inkFaint} size={13} />}
+                <Txt variant="caption" color={colors.inkMuted}>
+                  {item.kind === "incident"
+                    ? `${item.payload.latitude.toFixed(3)}, ${item.payload.longitude.toFixed(3)}`
+                    : "Local route"}
+                </Txt>
+              </View>
+              <View style={{ flexDirection: "row", gap: spacing.xs }}>
+                <Pressable onPress={() => remove(item)} style={styles.iconBtn}>
+                  <Trash2 color={colors.danger} size={16} />
+                </Pressable>
+                <Button
+                  label="Sync"
+                  variant="accent"
+                  onPress={() => syncOne(item)}
+                  loading={busyId === item.id}
+                  icon={<Zap color="#fff" size={14} />}
+                  style={{ minHeight: 38, paddingHorizontal: spacing.md }}
+                />
+              </View>
+            </View>
+          </Card>
+        ))
+      )}
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24 },
-  header: { flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 32, marginTop: 20 },
-  backBtn: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 12, borderRadius: 16 },
-  heading: { fontSize: 24, fontWeight: "800", color: "#f8fafc", letterSpacing: -0.5 },
-  subheading: { fontSize: 10, fontWeight: "900", color: "#38bdf8", letterSpacing: 2, marginTop: 4 },
-  listContent: { paddingBottom: 40 },
-  loadingContainer: { flex: 1, justifyContent: "center" },
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", gap: 12, opacity: 0.8 },
-  emptyText: { color: "#f1f5f9", fontSize: 20, fontWeight: "700" },
-  emptySubtext: { color: "#64748b", fontSize: 13, textAlign: "center", paddingHorizontal: 40, lineHeight: 20 },
-  card: { backgroundColor: 'rgba(30, 41, 59, 0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: 20, marginBottom: 16 },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
-  cardInfo: { gap: 12 },
-  badge: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12 },
-  badgeText: { fontSize: 10, fontWeight: "900" },
-  timestampRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  timestampText: { fontSize: 12, color: "#94a3b8", fontWeight: "600" },
-  deleteBtn: { padding: 8 },
-  description: { color: "#cbd5e1", fontSize: 14, lineHeight: 22, marginBottom: 20 },
-  cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  locationRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  locationText: { fontSize: 11, color: "#64748b", fontWeight: "600" },
-  syncBtn: { backgroundColor: "#0ea5e9", flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 14 },
-  syncBtnActive: { opacity: 0.7 },
-  syncBtnText: { color: "#fff", fontSize: 11, fontWeight: "900", letterSpacing: 1 }
+const makeStyles = (colors: Palette) => StyleSheet.create({
+  iconBtn: {
+    width: 38, height: 38, borderRadius: radius.pill,
+    backgroundColor: colors.surface2, borderWidth: 1, borderColor: colors.hairline,
+    alignItems: "center", justifyContent: "center",
+  },
 });

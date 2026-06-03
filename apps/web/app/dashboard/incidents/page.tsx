@@ -20,30 +20,30 @@ export default async function IncidentsPage({
     <div className="space-y-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Incident Management</h1>
-          <p className="text-slate-400 mt-1">Review and manage reported violations</p>
+          <h1 className="text-3xl font-bold text-ink tracking-tight">Incident Management</h1>
+          <p className="text-inkmuted mt-1">Review and manage reported violations</p>
         </div>
       </header>
 
-      <form className="grid gap-4 rounded-xl border border-slate-800 bg-[#0d1b2a] p-4 md:grid-cols-3" method="GET">
+      <form className="grid gap-4 rounded-xl border border-hairline bg-surface p-4 md:grid-cols-3" method="GET">
         <input 
-          className="rounded-lg border border-slate-700 bg-[#060e17] p-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50" 
+          className="rounded-lg border border-hairline bg-canvas p-2 text-ink focus:outline-none focus:ring-2 focus:ring-accent/50" 
           name="type" 
           placeholder="Filter by type" 
           defaultValue={filters.type ?? ""} 
         />
         <input 
-          className="rounded-lg border border-slate-700 bg-[#060e17] p-2 text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50" 
+          className="rounded-lg border border-hairline bg-canvas p-2 text-ink focus:outline-none focus:ring-2 focus:ring-accent/50" 
           name="date" 
           type="date" 
           defaultValue={filters.date ?? ""} 
         />
-        <button type="submit" className="rounded-lg bg-teal-600 p-2 text-white font-medium hover:bg-teal-500 transition-colors">
+        <button type="submit" className="rounded-lg bg-accent p-2 text-ink font-medium hover:bg-accent transition-colors">
           Apply Filters
         </button>
       </form>
 
-      <div className="bg-[#0d1b2a] border border-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-surface border border-hairline rounded-xl overflow-hidden">
         <IncidentsTable incidents={stats.incidents} typeFilter={filters.type} dateFilter={filters.date} />
       </div>
     </div>

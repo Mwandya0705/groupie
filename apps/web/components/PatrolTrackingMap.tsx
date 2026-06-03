@@ -42,7 +42,7 @@ function UserLocationTracker() {
       L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
       L.marker(e.latlng, {
         icon: L.divIcon({
-          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-white shadow-lg shadow-blue-500/50',
+          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-ink shadow-lg shadow-blue-500/50',
           iconSize: [16, 16]
         })
       }).addTo(map);
@@ -63,7 +63,7 @@ export default function PatrolTrackingMap({ route }: PatrolTrackingMapProps) {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="h-full w-full bg-[#060e17] animate-pulse" />;
+  if (!isMounted) return <div className="h-full w-full bg-canvas animate-pulse" />;
 
   const positions: [number, number][] = route.map(p => [p.latitude, p.longitude]);
   const center: [number, number] = positions.length > 0 ? positions[0] : [-1.286389, 36.817223];

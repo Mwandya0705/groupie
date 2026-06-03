@@ -36,8 +36,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700 max-w-5xl">
       <header>
-        <h1 className="text-4xl font-extrabold text-white tracking-tight">Core Configuration</h1>
-        <p className="text-slate-400 mt-2 font-medium italic">Environmental Tuning & Administrative Controls</p>
+        <h1 className="text-4xl font-extrabold text-ink tracking-tight">Core Configuration</h1>
+        <p className="text-inkmuted mt-2 font-medium italic">Environmental Tuning & Administrative Controls</p>
       </header>
 
       <div className="grid gap-8 md:grid-cols-4">
@@ -54,8 +54,8 @@ export default function SettingsPage() {
               key={i}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
                 item.active 
-                  ? "bg-teal-600 text-white shadow-lg shadow-teal-500/20" 
-                  : "text-slate-500 hover:text-slate-300 hover:bg-[#112233]/40"
+                  ? "bg-accent text-ink shadow-lg shadow-accent/20" 
+                  : "text-inkmuted hover:text-inkmuted hover:bg-surface2/40"
               }`}
             >
               <item.icon className="h-4 w-4" />
@@ -67,23 +67,23 @@ export default function SettingsPage() {
         {/* Content Area */}
         <div className="md:col-span-3 space-y-8">
           {sections.map((section, i) => (
-            <div key={i} className="bg-[#0d1b2a] border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-              <div className="p-6 border-b border-slate-800 bg-[#112233]/30 flex items-center gap-3">
-                <section.icon className="h-5 w-5 text-teal-400" />
-                <h2 className="font-bold text-white uppercase tracking-tight text-sm">{section.title}</h2>
+            <div key={i} className="bg-surface border border-hairline rounded-3xl overflow-hidden shadow-xl">
+              <div className="p-6 border-b border-hairline bg-surface2/30 flex items-center gap-3">
+                <section.icon className="h-5 w-5 text-accent" />
+                <h2 className="font-bold text-ink uppercase tracking-tight text-sm">{section.title}</h2>
               </div>
-              <div className="divide-y divide-slate-800/50">
+              <div className="divide-y divide-hairline/50">
                 {section.items.map((item, j) => (
-                  <div key={j} className="p-6 flex items-center justify-between hover:bg-[#112233]/20 transition-all cursor-pointer group">
+                  <div key={j} className="p-6 flex items-center justify-between hover:bg-surface2/20 transition-all cursor-pointer group">
                     <div className="flex-1 pr-8">
-                      <p className="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">{item.name}</p>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed font-medium">{item.desc}</p>
+                      <p className="text-sm font-bold text-ink group-hover:text-accent transition-colors">{item.name}</p>
+                      <p className="text-xs text-inkmuted mt-1 leading-relaxed font-medium">{item.desc}</p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-[10px] font-black text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 uppercase tracking-widest">
+                      <span className="text-[10px] font-black text-inkmuted bg-surface px-3 py-1.5 rounded-lg border border-hairline uppercase tracking-widest">
                         {item.value}
                       </span>
-                      <ChevronRight className="h-4 w-4 text-slate-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                      <ChevronRight className="h-4 w-4 text-ink group-hover:text-ink group-hover:translate-x-1 transition-all" />
                     </div>
                   </div>
                 ))}
@@ -99,10 +99,10 @@ export default function SettingsPage() {
                </div>
                <h3 className="text-lg font-bold text-red-500">Infrastructure Purge</h3>
              </div>
-             <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+             <p className="text-sm text-inkmuted mb-6 leading-relaxed">
                Permanently delete all historical logs, cache artifacts, and operational metadata. This action is irreversible and requires multi-stage clearance.
              </p>
-             <button className="px-6 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+             <button className="px-6 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-ink transition-all">
                Initialize Purge
              </button>
           </div>

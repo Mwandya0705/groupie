@@ -10,7 +10,7 @@ export default async function MapPage() {
     <main className="mx-auto max-w-6xl space-y-6 p-6">
       <header className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Patrol Routes & Incident Map</h1>
-        <Link href="/dashboard" className="rounded bg-slate-700 px-3 py-2 text-white">
+        <Link href="/dashboard" className="rounded bg-surface3 px-3 py-2 text-ink">
           Back to dashboard
         </Link>
       </header>

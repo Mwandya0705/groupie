@@ -7,7 +7,7 @@ import { Clock, MapPin, AlertCircle, ChevronRight } from "lucide-react";
 // Dynamically import the incident heatmap
 const IncidentHeatmap = dynamic(() => import("./IncidentHeatmap"), { 
   ssr: false,
-  loading: () => <div className="h-[600px] w-full bg-slate-800/20 animate-pulse rounded-3xl border border-slate-800" />
+  loading: () => <div className="h-[600px] w-full bg-surface2/20 animate-pulse rounded-3xl border border-hairline" />
 });
 
 interface DashboardMapProps {
@@ -33,13 +33,13 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
   return (
     <div className="space-y-6">
       {/* Expanded Map View */}
-      <div className="bg-[#0d1b2a] border border-slate-800 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
-        <div className="absolute bottom-6 left-6 z-20 bg-[#060e17]/90 backdrop-blur-xl border border-slate-700/50 px-5 py-3 rounded-2xl shadow-2xl">
+      <div className="bg-surface border border-hairline rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
+        <div className="absolute bottom-6 left-6 z-20 bg-canvas/90 backdrop-blur-xl border border-hairline/50 px-5 py-3 rounded-2xl shadow-2xl">
           <div className="flex items-center gap-3">
             <div className="h-3 w-3 rounded-full bg-red-500 animate-ping" />
             <div className="space-y-0.5">
-              <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] block">Tactical Oversight</span>
-              <span className="text-xs text-slate-400 font-medium">Live GPS Stream Active</span>
+              <span className="text-[10px] font-black text-ink uppercase tracking-[0.2em] block">Tactical Oversight</span>
+              <span className="text-xs text-inkmuted font-medium">Live GPS Stream Active</span>
             </div>
           </div>
         </div>
@@ -63,28 +63,28 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
             onClick={() => handleIncidentClick(incident)}
             className={`flex flex-col p-4 rounded-2xl border transition-all duration-300 text-left group ${
               selectedIncidentId === incident.id 
-                ? "bg-teal-500/20 border-teal-500 shadow-[0_0_20px_rgba(20,184,166,0.2)]" 
-                : "bg-[#0d1b2a] border-slate-800 hover:border-slate-600"
+                ? "bg-accent/20 border-accent shadow-[0_0_20px_rgba(20,184,166,0.2)]" 
+                : "bg-surface border-hairline hover:border-hairline"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`p-2 rounded-lg ${incident.type.includes('illegal') ? 'bg-red-500/10 text-red-400' : 'bg-teal-500/10 text-teal-400'}`}>
+              <div className={`p-2 rounded-lg ${incident.type.includes('illegal') ? 'bg-red-500/10 text-red-400' : 'bg-accent/10 text-accent'}`}>
                 <AlertCircle className="h-4 w-4" />
               </div>
-              <span className="text-[9px] font-mono text-slate-500">
+              <span className="text-[9px] font-mono text-inkmuted">
                 {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <p className={`text-xs font-bold truncate mb-1 ${selectedIncidentId === incident.id ? "text-teal-400" : "text-white"}`}>
+            <p className={`text-xs font-bold truncate mb-1 ${selectedIncidentId === incident.id ? "text-accent" : "text-ink"}`}>
               {incident.type.replace('_', ' ')}
             </p>
-            <div className="flex items-center gap-1 text-[9px] text-slate-500 mt-auto">
+            <div className="flex items-center gap-1 text-[9px] text-inkmuted mt-auto">
               <MapPin className="h-3 w-3" />
               {incident.latitude.toFixed(2)}, {incident.longitude.toFixed(2)}
             </div>
             <div className="mt-2 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="text-[8px] font-bold text-teal-500 uppercase">Pinpoint</span>
-              <ChevronRight className="h-3 w-3 text-teal-500" />
+              <span className="text-[8px] font-bold text-accent uppercase">Pinpoint</span>
+              <ChevronRight className="h-3 w-3 text-accent" />
             </div>
           </button>
         ))}

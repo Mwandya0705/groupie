@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PendingItem } from "../types/domain";
 import { createPatrol } from "../services/patrolService";
 import { createIncident, uploadEvidence } from "../services/incidentService";
+import { recordSyncLog } from "../services/syncService";
 
 const PENDING_KEY = "pending_sync_items";
 
@@ -39,8 +40,8 @@ export async function syncItem(item: PendingItem, userId: string) {
     await createPatrol(userId, item.payload);
   } else {
     const incidentId = await createIncident(item.payload);
-    if (item.imageUri) {
-      await uploadEvidence(incidentId, item.imageUri);
+    if (item.imageBase64) {
+      await uploadEvidence(incidentId, item.imageBase64, item.imageName);
     }
   }
 }
@@ -77,9 +78,9 @@ export async function syncPendingData(userId: string) {
         }
 
         const incidentId = await createIncident(payload);
-        
-        if (item.imageUri) {
-          await uploadEvidence(incidentId, item.imageUri);
+
+        if (item.imageBase64) {
+          await uploadEvidence(incidentId, item.imageBase64, item.imageName);
         }
       }
     } catch (e) {
@@ -89,5 +90,16 @@ export async function syncPendingData(userId: string) {
   }
 
   await AsyncStorage.setItem(PENDING_KEY, JSON.stringify(failed));
+
+  // Record the flush so the dashboard's Sync Monitoring page reflects it.
+  if (queue.length > 0) {
+    const synced = queue.length - failed.length;
+    await recordSyncLog(userId, {
+      status: failed.length === 0 ? "success" : "failed",
+      records_synced: synced,
+      error_message: failed.length > 0 ? `${failed.length} record(s) failed to sync` : null,
+    });
+  }
+
   return { attempted: queue.length, failed: failed.length };
 }

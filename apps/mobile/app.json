@@ -5,13 +5,14 @@
     "scheme": "iuu-patrol-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#090909",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#090909"
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",

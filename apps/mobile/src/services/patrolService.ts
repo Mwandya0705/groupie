@@ -7,10 +7,17 @@ export async function getCurrentCoordinates() {
   if (permission.status !== "granted") {
     throw new Error("Location permission not granted");
   }
-  const position = await Location.getCurrentPositionAsync({});
+  // Highest accuracy = the device's real GPS fix (not a coarse/cached estimate).
+  // NOTE: on the iOS Simulator this returns the *simulated* location (Features →
+  // Location); on a physical device it is the true GPS position.
+  const position = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.Highest,
+    mayShowUserSettingsDialog: true,
+  });
   return {
     latitude: position.coords.latitude,
-    longitude: position.coords.longitude
+    longitude: position.coords.longitude,
+    accuracy: position.coords.accuracy ?? null,
   };
 }
 

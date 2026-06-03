@@ -57,9 +57,16 @@ export function RootNavigator() {
   };
 
   const initAuth = async () => {
-    const { data } = await supabase.auth.getSession();
-    let active = Boolean(data.session);
-    let uid = data.session?.user.id ?? null;
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error && (error.message.includes("Refresh Token") || error.status === 400 || error.message.includes("refresh_token"))) {
+      console.log("[initAuth] Invalid session detected, clearing session storage:", error.message);
+      await supabase.auth.signOut().catch(() => {});
+      await AsyncStorage.removeItem(OFFLINE_USER_KEY).catch(() => {});
+    }
+
+    let active = Boolean(data?.session);
+    let uid = data?.session?.user.id ?? null;
     if (!active) {
       const offlineId = await AsyncStorage.getItem(OFFLINE_USER_KEY);
       if (offlineId) { active = true; uid = offlineId; }

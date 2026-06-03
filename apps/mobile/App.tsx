@@ -1,10 +1,18 @@
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from "expo-status-bar";
 import { registerRootComponent } from 'expo';
+import { LogBox } from 'react-native';
 import { RootNavigator } from "./src/navigation/RootNavigator";
 import { ThemeProvider, useTheme } from "./src/theme/ThemeContext";
 import { Buffer } from "buffer";
+
 (globalThis as any).Buffer = (globalThis as any).Buffer || Buffer;
+
+// Suppress Supabase's internal auth refresh warning popup in development
+LogBox.ignoreLogs([
+  "AuthApiError: Invalid Refresh Token: Refresh Token Not Found",
+  "AuthApiError: Invalid Refresh Token",
+]);
 
 function Themed() {
   const { colors, scheme } = useTheme();

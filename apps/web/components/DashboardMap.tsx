@@ -67,8 +67,19 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
         </div>
       </div>
 
-      {/* Interactive Recent Incidents Panel */}
+      {/* 5 Latest Reported Incidents */}
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-sm font-black text-ink uppercase tracking-[0.15em] flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-accent" /> 5 Latest Reported Incidents
+        </h3>
+        <span className="text-[10px] text-inkmuted font-medium">Tap a card to pinpoint it on the map</span>
+      </div>
       <div className="grid gap-4 md:grid-cols-5">
+        {recentIncidents.length === 0 && (
+          <div className="md:col-span-5 text-center py-8 text-xs text-inkmuted italic border border-dashed border-hairline rounded-2xl">
+            No incidents reported yet.
+          </div>
+        )}
         {recentIncidents.map((incident) => (
           <button
             key={incident.id}
@@ -87,10 +98,17 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
                 {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
-            <p className={`text-xs font-bold truncate mb-1 ${selectedIncidentId === incident.id ? "text-accent" : "text-ink"}`}>
-              {incident.type.replace('_', ' ')}
+            <p className={`text-xs font-bold capitalize truncate mb-1 ${selectedIncidentId === incident.id ? "text-accent" : "text-ink"}`}>
+              {incident.type.replace(/_/g, ' ')}
             </p>
-            <div className="flex items-center gap-1 text-[9px] text-inkmuted mt-auto">
+            <p className="text-[10px] text-inkmuted line-clamp-2 mb-2 min-h-[26px]">
+              {incident.description || "No description provided."}
+            </p>
+            <div className="flex items-center gap-1 text-[9px] text-inkmuted">
+              <Clock className="h-3 w-3" />
+              {new Date(incident.created_at).toLocaleDateString()}
+            </div>
+            <div className="flex items-center gap-1 text-[9px] text-inkmuted mt-1">
               <MapPin className="h-3 w-3" />
               {incident.latitude.toFixed(2)}, {incident.longitude.toFixed(2)}
             </div>

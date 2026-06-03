@@ -108,6 +108,21 @@ export async function fetchVessels() {
   return data ?? [];
 }
 
+/**
+ * All incidents, newest first — feeds the Hotspot Analytics map/list and the
+ * general-report generator. Includes description so the report can read the
+ * field officer's notes.
+ */
+export async function fetchIncidents() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("incidents")
+    .select("id,type,description,latitude,longitude,created_at,ai_analysis,evidence(image_url)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function fetchAIAnalysis() {
   const supabase = await createClient();
   const { data, error } = await supabase

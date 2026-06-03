@@ -21,7 +21,8 @@ export default function Pagination({ totalPages, currentPage }: PaginationProps)
   };
 
   const handlePageChange = (page: number) => {
-    router.push(createPageURL(page));
+    // Dynamic URL with query params — not statically verifiable by typedRoutes.
+    router.push(createPageURL(page) as any);
   };
 
   if (totalPages <= 1) return null;

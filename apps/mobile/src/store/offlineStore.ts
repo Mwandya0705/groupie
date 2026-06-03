@@ -4,6 +4,7 @@ import { createPatrol } from "../services/patrolService";
 import { createIncident, uploadEvidence } from "../services/incidentService";
 import { recordSyncLog } from "../services/syncService";
 import { getActiveSession } from "../services/authService";
+import { analyseEvidence, generateReport } from "../services/aiService";
 
 const PENDING_KEY = "pending_sync_items";
 
@@ -137,6 +138,39 @@ export async function syncPendingData(userId: string): Promise<SyncResult> {
           console.log("Purging permanently-orphaned incident:", item.id);
           purged++;
           continue;
+        }
+
+        // The incident was vaulted offline with a deferred ("pending") AI analysis.
+        // Now that we're back online, run the real analysis + report so it reaches
+        // the dashboard fully processed instead of stuck on "Processing…".
+        const existing = (payload as any).ai_analysis;
+        if (!existing || existing.threat_level === "pending") {
+          try {
+            let ai = await analyseEvidence({
+              type: (payload as any).type,
+              description: (payload as any).description,
+              latitude: (payload as any).latitude,
+              longitude: (payload as any).longitude,
+              imageBase64: item.imageBase64,
+            });
+            try {
+              const report = await generateReport({
+                type: (payload as any).type,
+                description: (payload as any).description,
+                latitude: (payload as any).latitude,
+                longitude: (payload as any).longitude,
+                analysis: ai,
+              });
+              ai = { ...ai, report };
+            } catch {
+              /* report is best-effort */
+            }
+            (payload as any).ai_analysis = ai;
+          } catch (e) {
+            // Analysis still couldn't run (e.g. OpenAI unreachable) — keep the
+            // deferred analysis and upload the incident anyway, don't block it.
+            console.log("sync-time AI analysis deferred:", item.id, e);
+          }
         }
 
         const incidentId = await createIncident(payload);

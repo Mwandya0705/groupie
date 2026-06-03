@@ -1,8 +1,6 @@
 import { fetchDashboardStats, fetchIncidents } from "../../../lib/queries";
 import { Activity, Map as MapIcon, TrendingUp, AlertTriangle, Crosshair, Zap } from "lucide-react";
-import dynamic from "next/dynamic";
-
-const IncidentHeatmap = dynamic(() => import("../../../components/IncidentHeatmap"), { ssr: false });
+import HeatmapClient from "../../../components/HeatmapClient";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +52,7 @@ export default async function HotspotsPage() {
             <p className="text-[10px] text-inkmuted font-medium mt-1">Live Spatial Incident Registry</p>
           </div>
           <div className="h-[500px] w-full">
-            <IncidentHeatmap incidents={incidents} />
+            <HeatmapClient incidents={incidents} />
           </div>
         </div>
 

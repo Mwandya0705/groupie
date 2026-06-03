@@ -20,6 +20,8 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
   const [zoom, setZoom] = useState(10);
 
   const recentIncidents = incidents.slice(0, 5);
+  // Incidents arrive ordered by created_at desc, so index 0 is the latest report.
+  const latestIncident = incidents[0];
 
   const handleIncidentClick = (incident: any) => {
     setSelectedIncidentId(incident.id);
@@ -39,7 +41,17 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
             <div className="h-3 w-3 rounded-full bg-red-500 animate-ping" />
             <div className="space-y-0.5">
               <span className="text-[10px] font-black text-ink uppercase tracking-[0.2em] block">Tactical Oversight</span>
-              <span className="text-xs text-inkmuted font-medium">Live GPS Stream Active</span>
+              {latestIncident ? (
+                <span className="text-xs text-inkmuted font-medium flex items-center gap-1.5">
+                  <MapPin className="h-3 w-3 text-accent" />
+                  Latest incident GPS:{" "}
+                  <span className="font-mono text-ink">
+                    {latestIncident.latitude.toFixed(5)}, {latestIncident.longitude.toFixed(5)}
+                  </span>
+                </span>
+              ) : (
+                <span className="text-xs text-inkmuted font-medium">Awaiting first incident report</span>
+              )}
             </div>
           </div>
         </div>

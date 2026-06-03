@@ -44,6 +44,22 @@ export async function signIn(identifier: string, password: string) {
   }
 }
 
+/**
+ * Returns a *live* Supabase session (with a usable JWT) or null.
+ *
+ * This is the difference between "the app thinks you're logged in" (an
+ * OFFLINE_USER_KEY in AsyncStorage) and "Supabase will actually accept your
+ * writes". Inserts run as the `anon` role without a JWT and are rejected by RLS
+ * (`42501`), so the sync layer must check this before attempting to flush the
+ * vault. If the access token is missing/expired we try a single silent refresh.
+ */
+export async function getActiveSession() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.access_token) return data.session;
+  const { data: refreshed } = await supabase.auth.refreshSession();
+  return refreshed.session ?? null;
+}
+
 export async function signOut() {
   await AsyncStorage.removeItem(OFFLINE_USER_KEY);
   const { error } = await supabase.auth.signOut();

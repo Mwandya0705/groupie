@@ -119,6 +119,7 @@ export function RootNavigator() {
             simulateOffline={simulateOffline}
             setSimulateOffline={setSimulateOffline}
             onPendingChanged={refreshPending}
+            onNavigateToReports={() => setTab("reports")}
           />
         )}
         {tab === "reports" && <ReportsScreen isOnline={isOnline} pendingCount={pendingCount} />}

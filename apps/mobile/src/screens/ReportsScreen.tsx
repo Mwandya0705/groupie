@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Share, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, View, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FileWarning, MapPin, ImageOff, FileText } from "lucide-react-native";
-import { fetchRecentIncidents } from "../services/incidentService";
+import { FileWarning, MapPin, ImageOff, FileText, Trash2 } from "lucide-react-native";
+import { fetchRecentIncidents, deleteIncident, shareReportAsDoc } from "../services/incidentService";
 import { IncidentRecord } from "../types/domain";
 import { Card, Txt, Eyebrow, StatusBadge, SpotlightCard } from "../components";
 import { radius, spacing, Palette } from "../theme";
@@ -30,6 +30,36 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "Delete Report",
+      "Are you sure you want to permanently delete this report?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteIncident(id);
+              setIncidents((prev) => prev.filter((inc) => inc.id !== id));
+            } catch (err: any) {
+              Alert.alert("Error", "Failed to delete report: " + (err.message || err));
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleShare = async (reportText: string) => {
+    try {
+      await shareReportAsDoc(reportText);
+    } catch (err: any) {
+      Alert.alert("Error", "Failed to generate Word document: " + (err.message || err));
+    }
+  };
 
   const threatTone = (lvl?: string) =>
     lvl === "high" || lvl === "critical" ? "danger" : lvl === "pending" ? "neutral" : "warning";
@@ -94,12 +124,19 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
                 ) : null}
               </View>
 
-              {inc.ai_analysis?.report ? (
-                <Pressable style={styles.reportBtn} onPress={() => Share.share({ title: "IUU Incident Report", message: inc.ai_analysis!.report! })}>
-                  <FileText color={colors.accent} size={14} />
-                  <Txt variant="caption" color={colors.accent}>Share / download report</Txt>
+              <View style={styles.actionRow}>
+                {inc.ai_analysis?.report ? (
+                  <Pressable style={styles.reportBtn} onPress={() => handleShare(inc.ai_analysis!.report!)}>
+                    <FileText color={colors.accent} size={14} />
+                    <Txt variant="caption" color={colors.accent}>Share / download (.doc)</Txt>
+                  </Pressable>
+                ) : <View style={{ flex: 1 }} />}
+
+                <Pressable style={styles.deleteBtn} onPress={() => handleDelete(inc.id)}>
+                  <Trash2 color={colors.danger} size={14} />
+                  <Txt variant="caption" color={colors.danger}>Delete</Txt>
                 </Pressable>
-              ) : null}
+              </View>
             </Card>
           );
         })
@@ -114,8 +151,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   thumbImg: { width: "100%", height: "100%" },
   footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing.xxs },
   loc: { flexDirection: "row", alignItems: "center", gap: 5 },
+  actionRow: {
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: spacing.sm, marginTop: spacing.xxs,
+  },
   reportBtn: {
     flexDirection: "row", alignItems: "center", gap: 6,
-    borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: spacing.sm, marginTop: spacing.xxs,
+  },
+  deleteBtn: {
+    flexDirection: "row", alignItems: "center", gap: 6,
   },
 });

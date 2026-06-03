@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, Share, StyleSheet, Text, TextInput, View } from "react-native";
-import { ImagePlus, Sparkles, Zap, FileText, Share2 } from "lucide-react-native";
+import { ActivityIndicator, Alert, Image, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ImagePlus, Sparkles, Zap } from "lucide-react-native";
 import { createIncident, pickEvidenceImage, pickEvidenceFile, takePhoto, uploadEvidence, PickedImage } from "../services/incidentService";
 import { getCurrentCoordinates } from "../services/patrolService";
 import { addPendingItem } from "../store/offlineStore";
@@ -41,7 +41,6 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<AiAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [report, setReport] = useState<string | null>(null);
 
   const runAnalysis = async (img: PickedImage) => {
     if (simulateOffline) {
@@ -111,19 +110,12 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
     onReported?.();
   };
 
-  const shareReport = async (text: string) => {
-    try {
-      await Share.share({ title: "IUU Incident Report", message: text });
-    } catch {}
-  };
-
   const submitIncident = async () => {
     if (!activePatrolId) {
       Alert.alert("No active mission", "Start a patrol before reporting an incident.");
       return;
     }
     setLoading(true);
-    setReport(null);
     try {
       const coords = await getCurrentCoordinates();
       const created_at = new Date().toISOString();
@@ -196,12 +188,11 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
         catch (e) { console.log("evidence upload failed:", e); photoWarning = true; }
       }
 
-      if (reportText) setReport(reportText);
       onReported?.();
       resetForm();
       Alert.alert(
         "Report published",
-        (reportText ? "Posted to the Command Center dashboard with a generated report. Tap “Share / download report” below." : "Posted to the Command Center dashboard.") +
+        "Posted to the Command Center dashboard. View, share or download the doc report in the Reports tab." +
           (photoWarning ? "\n\nNote: the evidence photo failed to upload — you can re-attach and resubmit." : "")
       );
     } catch (err: any) {
@@ -298,26 +289,6 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
         />
         <Button label="Publish report" onPress={submitIncident} loading={loading} disabled={isAnalyzing} full />
       </View>
-
-      {report && (
-        <View style={styles.reportBox}>
-          <View style={styles.aiHead}>
-            <FileText color={colors.accent} size={16} />
-            <Eyebrow>GENERATED REPORT (~300 WORDS)</Eyebrow>
-          </View>
-          <Txt variant="bodySm" color={colors.inkMuted} style={{ marginTop: spacing.xs }}>
-            {report}
-          </Txt>
-          <Button
-            label="Share / download report"
-            variant="accent"
-            onPress={() => shareReport(report)}
-            icon={<Share2 color="#fff" size={16} />}
-            style={{ marginTop: spacing.sm }}
-            full
-          />
-        </View>
-      )}
     </Card>
   );
 }

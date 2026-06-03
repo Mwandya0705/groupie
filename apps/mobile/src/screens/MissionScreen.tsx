@@ -17,6 +17,7 @@ type Props = {
   simulateOffline: boolean;
   setSimulateOffline: (v: boolean) => void;
   onPendingChanged: () => void;
+  onNavigateToReports?: () => void;
 };
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -26,7 +27,7 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-export function MissionScreen({ userId, userName, isOnline, simulateOffline, setSimulateOffline, onPendingChanged }: Props) {
+export function MissionScreen({ userId, userName, isOnline, simulateOffline, setSimulateOffline, onPendingChanged, onNavigateToReports }: Props) {
   const { colors } = useTheme();
   const [patrolType, setPatrolType] = useState<"land" | "water">("land");
   const [activePatrolId, setActivePatrolId] = useState<string | null>(null);
@@ -169,7 +170,10 @@ export function MissionScreen({ userId, userName, isOnline, simulateOffline, set
         activePatrolId={activePatrolId}
         simulateOffline={simulateOffline}
         officer={userName}
-        onReported={onPendingChanged}
+        onReported={() => {
+          onPendingChanged();
+          onNavigateToReports?.();
+        }}
       />
     </Screen>
   );

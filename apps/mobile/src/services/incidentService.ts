@@ -1,6 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import { Buffer } from "buffer";
 import { supabase } from "./supabase";
 import { IncidentInsertInput, IncidentRecord } from "../types/domain";
@@ -117,4 +118,57 @@ export async function uploadEvidence(
   if (dbError) throw dbError;
 
   return data.publicUrl;
+}
+
+export async function deleteIncident(id: string) {
+  const { error } = await supabase.from("incidents").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function shareReportAsDoc(reportText: string, filenamePrefix = "Incident_Report") {
+  const isAvailable = await Sharing.isAvailableAsync();
+  if (!isAvailable) {
+    throw new Error("Sharing is not available on this device");
+  }
+
+  const cleanFilename = `${filenamePrefix}_${Date.now()}.doc`;
+  const fileUri = `${FileSystem.cacheDirectory}${cleanFilename}`;
+
+  // Build clean Word Document compatible HTML
+  const docHtml = `
+<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+      xmlns:w='urn:schemas-microsoft-com:office:word' 
+      xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <title>IUU Incident Report</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #1e293b; padding: 30px; }
+    h1 { color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; margin-bottom: 20px; font-size: 24pt; font-weight: bold; }
+    h2 { color: #1e3a8a; margin-top: 30px; margin-bottom: 12px; font-size: 16pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px; font-weight: bold; }
+    p { margin-top: 0; margin-bottom: 14px; font-size: 11pt; }
+    ul { margin-top: 0; margin-bottom: 14px; padding-left: 20px; }
+    li { font-size: 11pt; margin-bottom: 6px; }
+    strong { color: #0f172a; font-weight: bold; }
+  </style>
+</head>
+<body>
+  ${reportText
+    .replace(/\r?\n/g, "<br/>")
+    .replace(/### (.*?)(<br\/>|$)/g, "<h2>$1</h2>")
+    .replace(/# (.*?)(<br\/>|$)/g, "<h1>$1</h1>")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+  }
+</body>
+</html>
+  `.trim();
+
+  await FileSystem.writeAsStringAsync(fileUri, docHtml, {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+
+  await Sharing.shareAsync(fileUri, {
+    mimeType: "application/msword",
+    dialogTitle: "Share / download report",
+    UTI: "com.microsoft.word.doc",
+  });
 }

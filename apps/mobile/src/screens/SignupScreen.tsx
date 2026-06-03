@@ -16,6 +16,7 @@ export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
   const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,6 +25,10 @@ export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
   const handleSignUp = async () => {
     if (!fullName || !username) {
       setError("Name and username are required");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
     setLoading(true);
@@ -81,6 +86,7 @@ export function SignupScreen({ onSignedUp, onBackToLogin }: Props) {
         <Field label="Username" placeholder="j.officer" value={username} onChangeText={setUsername} autoCapitalize="none" textContentType="username" />
         <Field label="Email" placeholder="you@agency.go" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" textContentType="emailAddress" autoComplete="email" />
         <Field label="Password" placeholder="Create a strong password" value={password} onChangeText={setPassword} secureTextEntry textContentType="newPassword" autoComplete="password-new" />
+        <Field label="Confirm Password" placeholder="Repeat your password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry textContentType="newPassword" autoComplete="password-new" />
         {error ? <Text style={[type.bodySm, { color: colors.danger }]}>{error}</Text> : null}
 
         <Button label="Create account" onPress={handleSignUp} loading={loading} full />

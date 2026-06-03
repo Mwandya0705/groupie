@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Eye, EyeOff } from "lucide-react-native";
 import { gradients, radius, spacing, type } from "../theme";
 import { useTheme } from "../theme/ThemeContext";
 
@@ -209,29 +210,54 @@ export function Button({
 /* ------------------------------------------------------------------ */
 /* Field                                                               */
 /* ------------------------------------------------------------------ */
-export function Field({ label, style, ...rest }: TextInputProps & { label?: string }) {
+export function Field({ label, style, secureTextEntry, ...rest }: TextInputProps & { label?: string }) {
   const { colors } = useTheme();
+  const [isSecure, setIsSecure] = useState(secureTextEntry);
+
   return (
     <View style={{ gap: spacing.xs }}>
       {label ? <Text style={[type.eyebrow, { color: colors.inkMuted }]}>{label}</Text> : null}
-      <TextInput
-        placeholderTextColor={colors.inkFaint}
-        style={[
-          {
-            backgroundColor: colors.surface1,
-            borderWidth: 1,
-            borderColor: colors.hairline,
-            borderRadius: radius.md,
-            paddingHorizontal: spacing.md,
-            paddingVertical: 14,
-            color: colors.ink,
-            fontSize: 15,
-            letterSpacing: -0.15,
-          },
-          style,
-        ]}
-        {...rest}
-      />
+      <View style={{ justifyContent: "center" }}>
+        <TextInput
+          placeholderTextColor={colors.inkFaint}
+          style={[
+            {
+              backgroundColor: colors.surface1,
+              borderWidth: 1,
+              borderColor: colors.hairline,
+              borderRadius: radius.md,
+              paddingLeft: spacing.md,
+              paddingRight: secureTextEntry ? 46 : spacing.md,
+              paddingVertical: 14,
+              color: colors.ink,
+              fontSize: 15,
+              letterSpacing: -0.15,
+            },
+            style,
+          ]}
+          secureTextEntry={isSecure}
+          {...rest}
+        />
+        {secureTextEntry !== undefined && (
+          <Pressable
+            onPress={() => setIsSecure(!isSecure)}
+            style={{
+              position: "absolute",
+              right: spacing.sm,
+              height: "100%",
+              width: 36,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {isSecure ? (
+              <EyeOff size={18} color={colors.inkMuted} />
+            ) : (
+              <Eye size={18} color={colors.inkMuted} />
+            )}
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }

@@ -6,7 +6,7 @@ import PatrolTrackingView from "../../../../components/PatrolTrackingView";
 
 export const dynamic = "force-dynamic";
 
-export default async function PatrolDetailPage({ params }: { params: { id: string } }) {
+export default async function PatrolDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
   const { id } = await params;
 

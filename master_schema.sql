@@ -19,6 +19,7 @@ create table if not exists public.profiles (
   username    text unique,
   email       text,
   role        text default 'operator' check (role in ('admin','operator','supervisor','guest')),
+  authorized  boolean default false,
   department  text,
   last_login  timestamptz,
   created_at  timestamptz default now()
@@ -163,7 +164,7 @@ group by type;
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, username, email, role)
+  insert into public.profiles (id, full_name, username, email, role, authorized)
   values (
     new.id,
     new.raw_user_meta_data->>'full_name',
@@ -172,6 +173,10 @@ begin
     case
       when new.email = 'iuuadmin@gmail.com' then 'admin'
       else coalesce(new.raw_user_meta_data->>'role', 'operator')
+    end,
+    case
+      when new.email = 'iuuadmin@gmail.com' then true
+      else false
     end
   )
   on conflict (id) do nothing;

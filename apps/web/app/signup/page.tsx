@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
-import { User, Mail, Lock, Shield, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Shield, Eye, EyeOff, Activity } from "lucide-react";
 
 export default function SignupPage() {
   const supabase = createClient();

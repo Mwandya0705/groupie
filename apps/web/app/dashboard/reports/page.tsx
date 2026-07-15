@@ -9,6 +9,8 @@ import {
   ChevronDown,
   Calendar
 } from "lucide-react";
+import { ReportExportButtons } from "../../../components/ReportExportButtons";
+import { TimeframeReports } from "../../../components/TimeframeReports";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +20,8 @@ export default async function ReportsPage() {
   const reportTypes = [
     { name: "Monthly IUU Analysis", description: "Comprehensive breakdown of illegal fishing activity and hotspots.", icon: BarChart3, color: "text-blue-400" },
     { name: "Officer Patrol Efficacy", description: "Performance metrics for active units and sector coverage.", icon: TrendingUp, color: "text-accent" },
-    { name: "Incident Severity Log", description: "Historical data on violation types and AI detection accuracy.", icon: AlertTriangle, color: "text-red-400" },
-    { name: "Fleet Resource Allocation", description: "Visualization of vessel distribution and response times.", icon: PieChart, color: "text-purple-400" },
+    { name: "Incident Severity Log", description: "Historical data on violation types and AI detection accuracy.", icon: AlertTriangle, color: "text-red-400", filterType: "Illegal fishing" },
+    { name: "Fleet Resource Allocation", description: "Visualization of vessel distribution and response times.", icon: PieChart, color: "text-purple-400", filterType: "vessel" },
   ];
 
   return (
@@ -35,10 +37,7 @@ export default async function ReportsPage() {
             Last 30 Days
             <ChevronDown className="h-4 w-4" />
           </button>
-          <button className="flex items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-ink font-bold text-xs hover:bg-accent transition-all shadow-lg shadow-accent/20 uppercase tracking-widest">
-            <Download className="h-4 w-4" />
-            Generate Global Report
-          </button>
+          <ReportExportButtons incidents={stats.incidents} label="Generate Global Report" variant="global" />
         </div>
       </header>
 
@@ -77,41 +76,14 @@ export default async function ReportsPage() {
                   <h3 className="font-bold text-ink text-sm group-hover:text-accent transition-colors">{report.name}</h3>
                   <p className="text-xs text-inkmuted mt-1 leading-relaxed">{report.description}</p>
                 </div>
-                <button className="p-2 text-inkmuted hover:text-ink">
-                  <Download className="h-4 w-4" />
-                </button>
+                <ReportExportButtons incidents={stats.incidents} variant="template" filterType={report.filterType} />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Exports */}
-        <div className="bg-surface border border-hairline rounded-3xl overflow-hidden shadow-xl">
-          <div className="p-6 border-b border-hairline bg-surface2/30">
-            <h2 className="font-bold text-ink uppercase tracking-tight text-sm">Recent Generation Log</h2>
-          </div>
-          <div className="p-0">
-            {[1, 2, 3, 4, 5].map((_, i) => (
-              <div key={i} className="px-6 py-4 flex items-center justify-between border-b border-hairline/50 last:border-0 hover:bg-surface2/20 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-ink">iuu_summary_Q{i+1}_2026.pdf</p>
-                    <p className="text-[10px] text-inkmuted font-mono">SIZE: 4.2 MB • GEN: SYSTEM_AUTH</p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-inkmuted uppercase">2 days ago</span>
-              </div>
-            ))}
-          </div>
-          <div className="p-6 text-center border-t border-hairline">
-             <button className="text-xs font-bold text-accent hover:text-accent transition-colors uppercase tracking-widest">
-               View Full Archive
-             </button>
-          </div>
-        </div>
+        {/* Timeframe Narrative Reports (Daily, Weekly, Monthly, Annually) */}
+        <TimeframeReports incidents={stats.incidents} />
       </div>
     </div>
   );

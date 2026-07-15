@@ -30,31 +30,6 @@ function MapFit({ route }: { route: { latitude: number; longitude: number }[] })
   return null;
 }
 
-function UserLocationTracker() {
-  const map = useMap();
-  
-  useEffect(() => {
-    // Locate the user but DO NOT override the view (setView: false)
-    // This allows the patrol route to remain the primary focus.
-    map.locate({ setView: false, maxZoom: 15 });
-
-    const onLocationFound = (e: L.LocationEvent) => {
-      L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
-      L.marker(e.latlng, {
-        icon: L.divIcon({
-          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-ink shadow-lg shadow-blue-500/50',
-          iconSize: [16, 16]
-        })
-      }).addTo(map);
-    };
-
-    map.on('locationfound', onLocationFound);
-    return () => { map.off('locationfound', onLocationFound); };
-  }, [map]);
-
-  return null;
-}
-
 export default function PatrolTrackingMap({ route }: PatrolTrackingMapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -79,7 +54,6 @@ export default function PatrolTrackingMap({ route }: PatrolTrackingMapProps) {
           attribution='&copy; CARTO'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
-        <UserLocationTracker />
         <MapFit route={route} />
         <Polyline 
           positions={positions} 

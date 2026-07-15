@@ -55,40 +55,6 @@ function MapController({ center, zoom }: { center?: [number, number]; zoom?: num
   return null;
 }
 
-function UserLocationTracker() {
-  const map = useMap();
-  
-  useEffect(() => {
-    // Attempt to locate the user without a manual trigger
-    map.locate({ setView: true, maxZoom: 15 });
-
-    const onLocationFound = (e: L.LocationEvent) => {
-      console.log("User location found:", e.latlng);
-      L.circle(e.latlng, { radius: e.accuracy / 2, color: '#3b82f6', fillOpacity: 0.1 }).addTo(map);
-      L.marker(e.latlng, {
-        icon: L.divIcon({
-          className: 'bg-blue-500 w-4 h-4 rounded-full border-2 border-ink shadow-lg shadow-blue-500/50',
-          iconSize: [16, 16]
-        })
-      }).addTo(map);
-    };
-
-    const onLocationError = (e: L.ErrorEvent) => {
-      console.warn("Location tracking error:", e.message);
-    };
-
-    map.on('locationfound', onLocationFound);
-    map.on('locationerror', onLocationError);
-
-    return () => {
-      map.off('locationfound', onLocationFound);
-      map.off('locationerror', onLocationError);
-    };
-  }, [map]);
-
-  return null;
-}
-
 export default function IncidentHeatmap({ incidents, center: propCenter, zoom: propZoom, selectedId }: HeatmapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -121,7 +87,6 @@ export default function IncidentHeatmap({ incidents, center: propCenter, zoom: p
           attribution='&copy; CARTO'
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
-        <UserLocationTracker />
         <MapController center={propCenter} zoom={propZoom} />
         <HeatLayer points={heatPoints} />
         {incidents.map((incident) => (

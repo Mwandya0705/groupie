@@ -56,6 +56,8 @@ export type IncidentRecord = {
 export type PendingItem = {
   id?: string;
   timestamp?: string;
+  /** Number of failed sync attempts. Used to auto-purge items that can never succeed. */
+  attempts?: number;
 } & (
   | {
       kind: "patrol";

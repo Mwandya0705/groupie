@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CloudUpload, Trash2, Shield, Zap, MapPin, Clock, Database } from "lucide-react-native";
-import { getPendingItems, removePendingItem, syncItem, syncPendingData } from "../store/offlineStore";
+import { getPendingItems, removePendingItem, syncItem, syncPendingData, clearPendingItems } from "../store/offlineStore";
 import { PendingItem } from "../types/domain";
 import { Card, Txt, Eyebrow, Button, StatusBadge } from "../components";
 import { radius, spacing, Palette } from "../theme";
@@ -53,10 +53,35 @@ export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
       const res = await syncPendingData(userId);
       await load();
       onChanged();
-      Alert.alert("Sync complete", `Uploaded ${res.attempted - res.failed} of ${res.attempted} reports.`);
+      if (res.skipped === "no-session") {
+        Alert.alert(
+          "Sign in required",
+          "You're not signed in to the Command Center, so reports can't be uploaded. Please log in again, then sync.",
+        );
+        return;
+      }
+      const parts = [`Uploaded ${res.synced} of ${res.attempted}.`];
+      if (res.purged > 0) parts.push(`${res.purged} un-syncable report(s) were cleared.`);
+      if (res.failed > 0) parts.push(`${res.failed} will retry later.`);
+      Alert.alert("Sync complete", parts.join("\n"));
     } finally {
       setSyncingAll(false);
     }
+  };
+
+  const clearAll = () => {
+    Alert.alert(
+      "Clear vault",
+      "Permanently delete ALL locally vaulted reports? This cannot be undone and they will not be uploaded.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Clear all",
+          style: "destructive",
+          onPress: async () => { await clearPendingItems(); await load(); onChanged(); },
+        },
+      ],
+    );
   };
 
   const remove = (item: PendingItem) => {
@@ -82,14 +107,20 @@ export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
       </View>
 
       {items.length > 0 && (
-        <Button
-          label={isOnline ? "Sync all to dashboard" : "Reconnect to sync"}
-          onPress={syncAll}
-          loading={syncingAll}
-          disabled={!isOnline}
-          icon={<CloudUpload color={colors.onPrimary} size={18} />}
-          full
-        />
+        <View style={{ gap: spacing.sm }}>
+          <Button
+            label={isOnline ? "Sync all to dashboard" : "Reconnect to sync"}
+            onPress={syncAll}
+            loading={syncingAll}
+            disabled={!isOnline}
+            icon={<CloudUpload color={colors.onPrimary} size={18} />}
+            full
+          />
+          <Pressable onPress={clearAll} disabled={syncingAll} style={styles.clearBtn}>
+            <Trash2 color={colors.danger} size={15} />
+            <Txt variant="bodySm" color={colors.danger}>Clear vault</Txt>
+          </Pressable>
+        </View>
       )}
 
       {loading ? (
@@ -157,5 +188,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 38, height: 38, borderRadius: radius.pill,
     backgroundColor: colors.surface2, borderWidth: 1, borderColor: colors.hairline,
     alignItems: "center", justifyContent: "center",
+  },
+  clearBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
+    paddingVertical: spacing.sm, borderRadius: radius.pill,
+    borderWidth: 1, borderColor: colors.danger + "55", backgroundColor: colors.danger + "11",
   },
 });

@@ -7,6 +7,10 @@ const workspaceRoot = path.resolve(projectRoot, '../..');
 
 const config = getDefaultConfig(projectRoot);
 
+// Resolve lucide's CJS build wherever npm hoisted it (apps/mobile OR workspace root).
+// Hardcoding the workspace-root path breaks when hoisting changes (e.g. after `expo install`).
+const lucideCjs = require.resolve('lucide-react-native/dist/cjs/lucide-react-native.js');
+
 // 1. Watch all files within the monorepo
 config.watchFolders = [workspaceRoot];
 
@@ -26,7 +30,7 @@ config.resolver.extraNodeModules = {
   https: require.resolve('empty-module'),
   url: require.resolve('empty-module'),
   buffer: require.resolve('buffer'),
-  'lucide-react-native': path.resolve(workspaceRoot, 'node_modules/lucide-react-native/dist/cjs/lucide-react-native.js'),
+  'lucide-react-native': lucideCjs,
 };
 
 config.resolver.sourceExts = ['mjs', ...config.resolver.sourceExts, 'cjs'];
@@ -37,7 +41,7 @@ config.resolver.resolverMainFields = ['main', 'browser', 'native'];
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === 'lucide-react-native') {
     return {
-      filePath: path.resolve(workspaceRoot, 'node_modules/lucide-react-native/dist/cjs/lucide-react-native.js'),
+      filePath: lucideCjs,
       type: 'sourceFile',
     };
   }

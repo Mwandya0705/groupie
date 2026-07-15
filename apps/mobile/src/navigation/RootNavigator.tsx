@@ -79,11 +79,20 @@ export function RootNavigator() {
   useEffect(() => { initAuth(); void refreshPending(); }, []);
   useEffect(() => { if (userId) fetchProfile(userId); else setUserName(null); }, [userId]);
 
-  // Auto-sync vault whenever we have a real connection.
+  // Auto-sync the vault once a real connection returns — but wait a few seconds
+  // first so the link fully stabilizes. Flushing the instant we reconnect tends
+  // to fail ("Network request failed") and skip AI analysis; the grace period
+  // lets the AI analysis run and the evidence photos upload smoothly. If we go
+  // offline again within the window, the timer is cancelled so nothing is lost.
+  const SYNC_GRACE_MS = 6000;
   useEffect(() => {
-    if (isOnline && !simulateOffline && userId) {
-      syncPendingData(userId).then((res) => { if (res.attempted > 0) refreshPending(); }).catch(() => {});
-    }
+    if (!(isOnline && !simulateOffline && userId)) return;
+    const timer = setTimeout(() => {
+      syncPendingData(userId)
+        .then((res) => { if (res.attempted > 0) refreshPending(); })
+        .catch(() => {});
+    }, SYNC_GRACE_MS);
+    return () => clearTimeout(timer);
   }, [isOnline, simulateOffline, userId]);
 
   // ---- Unauthenticated ----

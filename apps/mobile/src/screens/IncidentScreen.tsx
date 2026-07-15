@@ -6,7 +6,7 @@ import { getCurrentCoordinates } from "../services/patrolService";
 import { addPendingItem } from "../store/offlineStore";
 import { analyseEvidence, generateReport, pendingAnalysis } from "../services/aiService";
 import { AiAnalysis } from "../types/domain";
-import { Card, Txt, Eyebrow, Button, Chip, StatusBadge } from "../components";
+import { Card, Txt, Eyebrow, Button, Chip, StatusBadge, Field, SegTabs } from "../components";
 import { radius, spacing, type as typo, Palette } from "../theme";
 import { useTheme } from "../theme/ThemeContext";
 
@@ -41,6 +41,9 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<AiAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [gpsMode, setGpsMode] = useState<"auto" | "manual">("auto");
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
 
   const runAnalysis = async (img: PickedImage) => {
     if (simulateOffline) {
@@ -97,6 +100,9 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
     setDescription("");
     setImage(null);
     setAnalysis(null);
+    setManualLat("");
+    setManualLng("");
+    setGpsMode("auto");
   };
 
   const vault = async (payload: any) => {
@@ -115,9 +121,38 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
       Alert.alert("No active mission", "Start a patrol before reporting an incident.");
       return;
     }
+
+    let latitude: number;
+    let longitude: number;
+
+    if (gpsMode === "manual") {
+      const lat = parseFloat(manualLat);
+      const lng = parseFloat(manualLng);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        Alert.alert("Invalid coordinates", "Latitude must be a valid number between -90 and 90.");
+        return;
+      }
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        Alert.alert("Invalid coordinates", "Longitude must be a valid number between -180 and 180.");
+        return;
+      }
+      latitude = lat;
+      longitude = lng;
+    } else {
+      setLoading(true);
+      try {
+        const coords = await getCurrentCoordinates();
+        latitude = coords.latitude;
+        longitude = coords.longitude;
+      } catch (err: any) {
+        Alert.alert("GPS Error", "Failed to retrieve automatic coordinates. Please try manual coordinate entry mode.");
+        setLoading(false);
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      const coords = await getCurrentCoordinates();
       const created_at = new Date().toISOString();
       const isLocalPatrol = activePatrolId.startsWith("local_") || activePatrolId.startsWith("sim_");
 
@@ -126,7 +161,7 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
         await vault({
           patrol_id: activePatrolId,
           type, description,
-          latitude: coords.latitude, longitude: coords.longitude,
+          latitude, longitude,
           created_at,
           ai_analysis: pendingAnalysis(),
         });
@@ -144,14 +179,14 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
       let ai: AiAnalysis = analysis ?? pendingAnalysis();
       if (ai.threat_level === "pending") {
         try {
-          ai = await analyseEvidence({ type, description, latitude: coords.latitude, longitude: coords.longitude, imageBase64: image?.base64 });
+          ai = await analyseEvidence({ type, description, latitude, longitude, imageBase64: image?.base64 });
         } catch (e) { console.log("analysis skipped:", e); }
       }
       // Report generation is best-effort — never blocks posting.
       let reportText: string | undefined;
       try {
         reportText = await generateReport({
-          type, description, latitude: coords.latitude, longitude: coords.longitude,
+          type, description, latitude, longitude,
           analysis: ai, officer: officer ?? undefined,
         });
         ai = { ...ai, report: reportText };
@@ -162,14 +197,14 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
         incidentId = await createIncident({
           patrol_id: activePatrolId,
           type, description,
-          latitude: coords.latitude, longitude: coords.longitude,
+          latitude, longitude,
           created_at, ai_analysis: ai,
         });
       } catch (e: any) {
         // Posting failed — vault as backup, but tell the user the REAL reason.
         await vault({
           patrol_id: activePatrolId, type, description,
-          latitude: coords.latitude, longitude: coords.longitude,
+          latitude, longitude,
           created_at, ai_analysis: ai,
         });
         if (isNetworkError(e)) {
@@ -266,6 +301,41 @@ export function IncidentScreen({ activePatrolId, simulateOffline, officer, onRep
               ))}
             </View>
           )}
+        </View>
+      )}
+
+      <View style={{ gap: spacing.xs, marginBottom: spacing.md }}>
+        <Eyebrow color={colors.inkMuted}>COORDINATE CAPTURE MODE</Eyebrow>
+        <SegTabs
+          options={[
+            { label: "Automatic GPS", value: "auto" },
+            { label: "Manual Input (RTK)", value: "manual" }
+          ]}
+          value={gpsMode}
+          onChange={setGpsMode}
+        />
+      </View>
+
+      {gpsMode === "manual" && (
+        <View style={{ flexDirection: "row", gap: spacing.md, marginBottom: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Field
+              label="Latitude"
+              placeholder="e.g. -6.1639"
+              keyboardType="numeric"
+              value={manualLat}
+              onChangeText={setManualLat}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Field
+              label="Longitude"
+              placeholder="e.g. 39.1979"
+              keyboardType="numeric"
+              value={manualLng}
+              onChangeText={setManualLng}
+            />
+          </View>
         </View>
       )}
 

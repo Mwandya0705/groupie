@@ -1,10 +1,27 @@
 import { fetchVessels } from "../../../lib/queries";
-import { Anchor, ShieldAlert, ShieldCheck, Search } from "lucide-react";
+import { Anchor, ShieldAlert, ShieldCheck } from "lucide-react";
+import { RegisterVesselModal } from "../../../components/RegisterVesselModal";
+import { SearchInput } from "../../../components/SearchInput";
 
 export const dynamic = "force-dynamic";
 
-export default async function VesselsPage() {
+type PageProps = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function VesselsPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const q = (resolvedParams.q || "").toLowerCase();
   const vessels = await fetchVessels();
+
+  const filteredVessels = q
+    ? vessels.filter(
+        (v) =>
+          v.name.toLowerCase().includes(q) ||
+          v.registration_number.toLowerCase().includes(q) ||
+          (v.vessel_type && v.vessel_type.toLowerCase().includes(q))
+      )
+    : vessels;
 
   return (
     <div className="space-y-8">
@@ -13,21 +30,13 @@ export default async function VesselsPage() {
           <h1 className="text-3xl font-bold text-ink tracking-tight">Vessel Monitoring</h1>
           <p className="text-inkmuted mt-1">Registry of authorized and blacklisted vessels</p>
         </div>
-        <button className="rounded-lg bg-accent px-4 py-2 text-ink font-medium hover:bg-accent transition-colors">
-          Register Vessel
-        </button>
+        <RegisterVesselModal />
       </header>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-inkmuted" />
-        <input 
-          className="w-full rounded-xl border border-hairline bg-surface pl-10 pr-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-accent/50" 
-          placeholder="Search vessels by name or registration number..." 
-        />
-      </div>
+      <SearchInput placeholder="Search vessels by name or registration number..." />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {vessels.map((vessel) => (
+        {filteredVessels.map((vessel) => (
           <div key={vessel.id} className="bg-surface border border-hairline rounded-xl p-6 hover:border-hairline transition-all group">
             <div className="flex items-start justify-between mb-4">
               <div className="h-12 w-12 rounded-lg bg-surface2 flex items-center justify-center text-inkmuted group-hover:bg-accent/10 group-hover:text-accent transition-colors">
@@ -59,7 +68,7 @@ export default async function VesselsPage() {
           </div>
         ))}
 
-        {vessels.length === 0 && (
+        {filteredVessels.length === 0 && (
           <div className="col-span-full bg-surface border border-hairline rounded-xl p-12 text-center">
             <p className="text-inkmuted">No vessels found in registry.</p>
           </div>

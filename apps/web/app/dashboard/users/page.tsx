@@ -1,10 +1,15 @@
 import { fetchProfiles } from "../../../lib/queries";
-import { User, Shield, Mail, Calendar, MoreVertical, UserPlus, Fingerprint, Activity, ShieldAlert } from "lucide-react";
+import { createClient } from "../../../lib/supabase/server";
+import { OperatorActions } from "../../../components/OperatorActions";
+import { User, Shield, Mail, Calendar, UserPlus, Fingerprint, Activity, ShieldAlert } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
   const users = await fetchProfiles();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentUserId = user?.id || "";
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -97,11 +102,7 @@ export default async function UsersPage() {
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-2.5 bg-surface border border-hairline rounded-xl text-inkmuted hover:text-ink hover:border-hairline transition-all">
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <OperatorActions profile={profile as any} currentUserId={currentUserId} />
                   </td>
                 </tr>
               ))}

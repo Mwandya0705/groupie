@@ -39,7 +39,24 @@ export async function signIn(identifier: string, password: string) {
     password 
   });
   if (error) throw error;
+  
   if (data.user) {
+    const { data: profile, error: profileErr } = await supabase
+      .from("profiles")
+      .select("authorized")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (profileErr) {
+      await supabase.auth.signOut();
+      throw profileErr;
+    }
+
+    if (profile && profile.authorized === false) {
+      await supabase.auth.signOut();
+      throw new Error("Your account is pending authorization by a system administrator.");
+    }
+
     await AsyncStorage.setItem(OFFLINE_USER_KEY, data.user.id);
   }
 }

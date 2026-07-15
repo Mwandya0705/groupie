@@ -18,10 +18,17 @@ import {
 import Link from "next/link";
 import DashboardMap from "../../components/DashboardMap";
 import { GeneralReportButton } from "../../components/GeneralReportButton";
+import { SearchInput } from "../../components/SearchInput";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+type PageProps = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function DashboardPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const q = (resolvedParams.q || "").toLowerCase();
   const stats = await fetchDashboardStats();
 
   const cards = [
@@ -33,13 +40,21 @@ export default async function DashboardPage() {
 
   // ---- Richer Sector Analytics (computed from reported incidents) ----
   const allIncidents: any[] = stats.incidents ?? [];
-  const totalInc = allIncidents.length;
+  const filteredIncidents = q
+    ? allIncidents.filter(
+        (i) =>
+          i.type.toLowerCase().includes(q) ||
+          (i.description && i.description.toLowerCase().includes(q)) ||
+          i.id.toLowerCase().includes(q)
+      )
+    : allIncidents;
+  const totalInc = filteredIncidents.length;
 
   // Lightweight payload for the CLIENT components (map + report). The full
   // `ai_analysis` (which holds each incident's ~300-word generated report) is
   // heavy and not needed in the browser, so we strip it before serializing —
   // this is the main thing that was making the dashboard "load too much".
-  const lightIncidents = allIncidents.map((i) => ({
+  const lightIncidents = filteredIncidents.map((i) => ({
     id: i.id,
     type: i.type,
     description: i.description ?? null,
@@ -51,7 +66,7 @@ export default async function DashboardPage() {
 
   const zoneMap = new Map<string, { count: number; types: Record<string, number> }>();
   const typeMap = new Map<string, { count: number; zones: Set<string> }>();
-  for (const i of allIncidents) {
+  for (const i of filteredIncidents) {
     if (typeof i.latitude !== "number" || typeof i.longitude !== "number") continue;
     const z = bucket(i);
     const zEntry = zoneMap.get(z) ?? { count: 0, types: {} };
@@ -94,13 +109,7 @@ export default async function DashboardPage() {
           <p className="text-inkmuted mt-1 font-medium italic">Global Surveillance & IUU Detection Protocol</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-inkmuted group-focus-within:text-accent transition-colors" />
-            <input
-              className="bg-surface border border-hairline rounded-xl py-2.5 pl-10 pr-4 text-sm text-ink placeholder-inkmuted outline-none focus:ring-2 focus:ring-accent/30 w-64"
-              placeholder="Search incidents, vessels..."
-            />
-          </div>
+          <SearchInput placeholder="Search incidents, vessels..." />
           <GeneralReportButton incidents={lightIncidents} />
           <button className="bg-surface border border-hairline p-2.5 rounded-xl text-inkmuted hover:text-ink transition-colors">
             <Filter className="h-5 w-5" />
@@ -162,7 +171,7 @@ export default async function DashboardPage() {
               </Link>
             </div>
             <div className="divide-y divide-hairline/50">
-              {stats.recentIncidents.map((incident: any) => (
+              {filteredIncidents.slice(0, 5).map((incident: any) => (
                 <div key={incident.id} className="p-6 hover:bg-surface2/40 transition-all cursor-pointer group">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-4">

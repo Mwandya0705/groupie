@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
-import { UserCircle2, ShieldCheck, Wifi, WifiOff, KeyRound, LogOut, Moon, Sun } from "lucide-react-native";
+import { UserCircle2, ShieldCheck, Wifi, WifiOff, KeyRound, LogOut, Moon, Sun, MapPin } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../services/supabase";
 import { Screen, Card, Txt, Eyebrow, Button, StatusBadge, Divider, SegTabs } from "../components";
@@ -8,6 +8,7 @@ import { radius, spacing, Palette } from "../theme";
 import { useTheme } from "../theme/ThemeContext";
 
 const PIN_KEY = "security_pin";
+const ACCURACY_KEY = "gps_accuracy";
 
 type Props = {
   userId: string;
@@ -22,6 +23,7 @@ export function ProfileScreen({ userId, userName, isOnline, pendingCount, onSign
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [role, setRole] = useState<string>("operator");
   const [email, setEmail] = useState<string | null>(null);
+  const [gpsAccuracy, setGpsAccuracy] = useState<string>("balanced");
 
   useEffect(() => {
     supabase
@@ -33,6 +35,10 @@ export function ProfileScreen({ userId, userName, isOnline, pendingCount, onSign
         if (data?.role) setRole(data.role);
         if (data?.email) setEmail(data.email);
       });
+
+    AsyncStorage.getItem(ACCURACY_KEY).then((val) => {
+      if (val) setGpsAccuracy(val);
+    });
   }, [userId]);
 
   const resetPin = () => {
@@ -109,6 +115,25 @@ export function ProfileScreen({ userId, userName, isOnline, pendingCount, onSign
           options={[{ label: "Dark", value: "dark" }, { label: "Light", value: "light" }]}
           value={scheme}
           onChange={(v) => setScheme(v as "dark" | "light")}
+        />
+      </Card>
+
+      <Card style={{ gap: spacing.sm }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <MapPin color={colors.accent} size={16} />
+          <Eyebrow color={colors.inkMuted}>GPS ACCURACY PRESET</Eyebrow>
+        </View>
+        <SegTabs
+          options={[
+            { label: "Balanced", value: "balanced" },
+            { label: "High", value: "high" },
+            { label: "Highest", value: "highest" }
+          ]}
+          value={gpsAccuracy}
+          onChange={async (v) => {
+            setGpsAccuracy(v);
+            await AsyncStorage.setItem(ACCURACY_KEY, v);
+          }}
         />
       </Card>
 

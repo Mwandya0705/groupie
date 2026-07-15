@@ -1,17 +1,33 @@
 import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "./supabase";
 import { PatrolInsertInput, RoutePoint } from "../types/domain";
+
+const ACCURACY_KEY = "gps_accuracy";
 
 export async function getCurrentCoordinates() {
   const permission = await Location.requestForegroundPermissionsAsync();
   if (permission.status !== "granted") {
     throw new Error("Location permission not granted");
   }
-  // Highest accuracy = the device's real GPS fix (not a coarse/cached estimate).
-  // NOTE: on the iOS Simulator this returns the *simulated* location (Features →
-  // Location); on a physical device it is the true GPS position.
+
+  // Load the accuracy setting from AsyncStorage
+  let accuracyOption = Location.Accuracy.Balanced;
+  try {
+    const stored = await AsyncStorage.getItem(ACCURACY_KEY);
+    if (stored === "high") {
+      accuracyOption = Location.Accuracy.High;
+    } else if (stored === "highest") {
+      accuracyOption = Location.Accuracy.Highest;
+    } else if (stored === "balanced") {
+      accuracyOption = Location.Accuracy.Balanced;
+    }
+  } catch (e) {
+    console.warn("Failed to load GPS accuracy setting, defaulting to Balanced:", e);
+  }
+
   const position = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.Highest,
+    accuracy: accuracyOption,
     mayShowUserSettingsDialog: true,
   });
   return {

@@ -42,11 +42,9 @@ export default async function ReportsPage() {
       </header>
 
       {/* Stats Grid */}
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2">
         {[
           { label: "Data Nodes", value: stats.totalIncidents + stats.totalPatrols, sub: "Total captured points" },
-          { label: "AI Accuracy", value: "94.2%", sub: "Validation confidence" },
-          { label: "System Uptime", value: "99.9%", sub: "Operational status" },
           { label: "Active Sectors", value: "08", sub: "Global coverage" },
         ].map((stat, i) => (
           <div key={i} className="bg-surface border border-hairline p-6 rounded-3xl relative overflow-hidden group">

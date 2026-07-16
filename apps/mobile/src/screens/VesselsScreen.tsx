@@ -11,7 +11,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const CACHED_VESSELS_KEY = "cached_vessels_registry";
 
-export function VesselsScreen() {
+type Props = { isOnline: boolean };
+
+export function VesselsScreen({ isOnline }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();

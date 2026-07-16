@@ -43,6 +43,7 @@ export function RootNavigator() {
   const [simulateOffline, setSimulateOffline] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [tab, setTab] = useState<Tab>("mission");
+  const [isAutoSyncing, setIsAutoSyncing] = useState(false);
 
   const refreshPending = async () => setPendingCount((await getPendingItems()).length);
 
@@ -88,9 +89,11 @@ export function RootNavigator() {
   useEffect(() => {
     if (!(isOnline && !simulateOffline && userId)) return;
     const timer = setTimeout(() => {
+      setIsAutoSyncing(true);
       syncPendingData(userId)
         .then((res) => { if (res.attempted > 0) refreshPending(); })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setIsAutoSyncing(false));
     }, SYNC_GRACE_MS);
     return () => clearTimeout(timer);
   }, [isOnline, simulateOffline, userId]);
@@ -132,9 +135,14 @@ export function RootNavigator() {
           />
         )}
         {tab === "reports" && <ReportsScreen isOnline={isOnline} pendingCount={pendingCount} />}
-        {tab === "vessels" && <VesselsScreen />}
+        {tab === "vessels" && <VesselsScreen isOnline={isOnline && !simulateOffline} />}
         {tab === "vault" && userId && (
-          <PendingDataScreen userId={userId} isOnline={isOnline && !simulateOffline} onChanged={refreshPending} />
+          <PendingDataScreen
+            userId={userId}
+            isOnline={isOnline && !simulateOffline}
+            onChanged={refreshPending}
+            isAutoSyncing={isAutoSyncing}
+          />
         )}
         {tab === "profile" && userId && (
           <ProfileScreen userId={userId} userName={userName} isOnline={isOnline} pendingCount={pendingCount} onSignOut={handleSignOut} />

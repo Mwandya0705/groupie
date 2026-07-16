@@ -98,7 +98,7 @@ export default async function UsersPage() {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-inkmuted uppercase tracking-widest">
                       <Calendar className="h-3.5 w-3.5 text-accent/50" />
-                      {profile.last_login ? new Date(profile.last_login).toLocaleDateString() : "NEVER"}
+                      {profile.last_login ? new Date(profile.last_login).toLocaleDateString([], { timeZone: 'Africa/Nairobi' }) : "NEVER"}
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">

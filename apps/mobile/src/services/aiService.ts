@@ -103,7 +103,7 @@ export async function analyseEvidence(input: EvidenceInput): Promise<AiAnalysis>
 export async function generateReport(
   input: EvidenceInput & { analysis: AiAnalysis; officer?: string }
 ): Promise<string> {
-  const when = new Date().toLocaleString();
+  const when = new Date().toLocaleString("en-US", { timeZone: "Africa/Nairobi" }) + " EAT";
   const loc =
     input.latitude != null && input.longitude != null
       ? `${input.latitude.toFixed(5)}, ${input.longitude.toFixed(5)}`

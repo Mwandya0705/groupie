@@ -104,7 +104,7 @@ export default async function SyncMonitorPage() {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2 text-xs text-inkmuted font-medium">
                       <Clock className="h-4 w-4 text-accent/50" />
-                      {new Date(log.last_sync_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      {new Date(log.last_sync_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Africa/Nairobi' })}
                     </div>
                   </td>
                   <td className="px-8 py-6 text-right">

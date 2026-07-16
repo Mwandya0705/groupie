@@ -95,7 +95,7 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
                 <AlertCircle className="h-4 w-4" />
               </div>
               <span className="text-[9px] font-mono text-inkmuted">
-                {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi' })}
               </span>
             </div>
             <p className={`text-xs font-bold capitalize truncate mb-1 ${selectedIncidentId === incident.id ? "text-accent" : "text-ink"}`}>
@@ -106,7 +106,7 @@ export default function DashboardMap({ incidents }: DashboardMapProps) {
             </p>
             <div className="flex items-center gap-1 text-[9px] text-inkmuted">
               <Clock className="h-3 w-3" />
-              {new Date(incident.created_at).toLocaleDateString()}
+              {new Date(incident.created_at).toLocaleDateString([], { timeZone: 'Africa/Nairobi' })}
             </div>
             <div className="flex items-center gap-1 text-[9px] text-inkmuted mt-1">
               <MapPin className="h-3 w-3" />

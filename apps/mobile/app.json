@@ -8,9 +8,18 @@
     "userInterfaceStyle": "dark",
     "backgroundColor": "#090909",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.iuu.patrolmobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "IUU Patrol uses your location to tag the GPS coordinates of reported incidents and patrol routes.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "IUU Patrol uses your location to tag the GPS coordinates of reported incidents and patrol routes.",
+        "NSCameraUsageDescription": "IUU Patrol uses the camera to capture evidence photos for incident reports.",
+        "NSPhotoLibraryUsageDescription": "IUU Patrol lets you attach evidence photos from your library to incident reports.",
+        "NSFaceIDUsageDescription": "IUU Patrol uses Face ID to unlock the secure vault."
+      }
     },
     "android": {
+      "package": "com.iuu.patrolmobile",
       "adaptiveIcon": {
         "backgroundColor": "#090909"
       },
@@ -21,6 +30,11 @@
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "iuu-patrol-mobile"
+      }
     }
   }
 }

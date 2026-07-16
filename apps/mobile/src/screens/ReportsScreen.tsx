@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, View, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FileWarning, MapPin, ImageOff, FileText, Trash2 } from "lucide-react-native";
+import { FileWarning, MapPin, ImageOff, FileText, Trash2, ShieldAlert } from "lucide-react-native";
 import { fetchRecentIncidents, deleteIncident, shareReportAsDoc } from "../services/incidentService";
 import { IncidentRecord } from "../types/domain";
 import { Card, Txt, Eyebrow, StatusBadge, SpotlightCard } from "../components";
 import { radius, spacing, Palette } from "../theme";
 import { useTheme } from "../theme/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getPendingItems, removePendingItem } from "../store/offlineStore";
 
 type Props = { isOnline: boolean; pendingCount: number };
+
+const CACHED_INCIDENTS_KEY = "cached_incidents_feed";
 
 export function ReportsScreen({ isOnline, pendingCount }: Props) {
   const { colors } = useTheme();
@@ -19,9 +23,46 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
       setError(null);
-      setIncidents(await fetchRecentIncidents(40));
+      
+      // 1. Fetch live incidents or fallback to offline local cache
+      let liveIncidents: IncidentRecord[] = [];
+      try {
+        liveIncidents = await fetchRecentIncidents(40);
+        await AsyncStorage.setItem(CACHED_INCIDENTS_KEY, JSON.stringify(liveIncidents));
+      } catch (err) {
+        const cached = await AsyncStorage.getItem(CACHED_INCIDENTS_KEY);
+        if (cached) {
+          liveIncidents = JSON.parse(cached);
+        } else {
+          // If no cache exists, propagate the error
+          throw err;
+        }
+      }
+
+      // 2. Load locally queued pending incidents waiting to sync
+      const pendingItems = await getPendingItems();
+      const pendingIncidents: IncidentRecord[] = pendingItems
+        .filter((item) => item.kind === "incident")
+        .map((item) => ({
+          id: item.id || `local_${Math.random()}`,
+          type: item.payload.type,
+          description: item.payload.description || null,
+          latitude: item.payload.latitude,
+          longitude: item.payload.longitude,
+          created_at: item.timestamp || new Date().toISOString(),
+          evidence: item.imageBase64 ? [{ id: "temp", image_url: `data:image/jpeg;base64,${item.imageBase64}`, created_at: "" }] : [],
+          ai_analysis: {
+            threat_level: "pending",
+            confidence_score: 0,
+            detected_objects: [],
+            ai_summary: "Awaiting sync..."
+          }
+        }));
+
+      setIncidents([...pendingIncidents, ...liveIncidents]);
     } catch (err) {
       setError("Could not load reports. Pull to retry when online.");
     } finally {
@@ -29,12 +70,13 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, [load, pendingCount]);
 
   const handleDelete = (id: string) => {
+    const isPendingIncident = id.startsWith("local_") || id.startsWith("sim_");
     Alert.alert(
       "Delete Report",
-      "Are you sure you want to permanently delete this report?",
+      `Are you sure you want to permanently delete this ${isPendingIncident ? "pending " : ""}report?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -42,7 +84,11 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteIncident(id);
+              if (isPendingIncident) {
+                await removePendingItem(id);
+              } else {
+                await deleteIncident(id);
+              }
               setIncidents((prev) => prev.filter((inc) => inc.id !== id));
             } catch (err: any) {
               Alert.alert("Error", "Failed to delete report: " + (err.message || err));
@@ -130,7 +176,14 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
                     <FileText color={colors.accent} size={14} />
                     <Txt variant="caption" color={colors.accent}>Share / download (.doc)</Txt>
                   </Pressable>
-                ) : <View style={{ flex: 1 }} />}
+                ) : (
+                  <View style={styles.reportPending}>
+                    <ShieldAlert color={colors.inkMuted} size={14} />
+                    <Txt variant="caption" color={colors.inkMuted} style={{ fontStyle: "italic" }}>
+                      Report to be generated upon sync
+                    </Txt>
+                  </View>
+                )}
 
                 <Pressable style={styles.deleteBtn} onPress={() => handleDelete(inc.id)}>
                   <Trash2 color={colors.danger} size={14} />
@@ -156,6 +209,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: spacing.sm, marginTop: spacing.xxs,
   },
   reportBtn: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+  },
+  reportPending: {
     flexDirection: "row", alignItems: "center", gap: 6,
   },
   deleteBtn: {

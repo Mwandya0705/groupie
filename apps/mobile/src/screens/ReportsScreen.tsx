@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, View, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FileWarning, MapPin, ImageOff, FileText, Trash2, ShieldAlert } from "lucide-react-native";
+import { FileWarning, MapPin, ImageOff, FileText, Trash2, ShieldAlert, WifiOff } from "lucide-react-native";
 import { fetchRecentIncidents, deleteIncident, shareReportAsDoc } from "../services/incidentService";
 import { IncidentRecord } from "../types/domain";
 import { Card, Txt, Eyebrow, StatusBadge, SpotlightCard } from "../components";
@@ -20,51 +20,53 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
   const insets = useSafeAreaInsets();
   const [incidents, setIncidents] = useState<IncidentRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setIsOfflineMode(false);
     try {
-      setError(null);
-      
-      // 1. Fetch live incidents or fallback to offline local cache
+      // 1. Load locally queued pending incidents waiting to sync
+      let pendingIncidents: IncidentRecord[] = [];
+      try {
+        const pendingItems = await getPendingItems();
+        pendingIncidents = pendingItems
+          .filter((item) => item.kind === "incident")
+          .map((item) => ({
+            id: item.id || `local_${Math.random()}`,
+            type: item.payload.type,
+            description: item.payload.description || null,
+            latitude: item.payload.latitude,
+            longitude: item.payload.longitude,
+            created_at: item.timestamp || new Date().toISOString(),
+            evidence: item.imageBase64 ? [{ id: "temp", image_url: `data:image/jpeg;base64,${item.imageBase64}`, created_at: "" }] : [],
+            ai_analysis: {
+              threat_level: "pending",
+              confidence_score: 0,
+              detected_objects: [],
+              ai_summary: "Awaiting sync..."
+            }
+          }));
+      } catch (err) {
+        console.warn("Failed to load pending items:", err);
+      }
+
+      // 2. Fetch live incidents or fallback to offline local cache
       let liveIncidents: IncidentRecord[] = [];
       try {
         liveIncidents = await fetchRecentIncidents(40);
         await AsyncStorage.setItem(CACHED_INCIDENTS_KEY, JSON.stringify(liveIncidents));
       } catch (err) {
+        setIsOfflineMode(true);
         const cached = await AsyncStorage.getItem(CACHED_INCIDENTS_KEY);
         if (cached) {
           liveIncidents = JSON.parse(cached);
-        } else {
-          // If no cache exists, propagate the error
-          throw err;
         }
       }
 
-      // 2. Load locally queued pending incidents waiting to sync
-      const pendingItems = await getPendingItems();
-      const pendingIncidents: IncidentRecord[] = pendingItems
-        .filter((item) => item.kind === "incident")
-        .map((item) => ({
-          id: item.id || `local_${Math.random()}`,
-          type: item.payload.type,
-          description: item.payload.description || null,
-          latitude: item.payload.latitude,
-          longitude: item.payload.longitude,
-          created_at: item.timestamp || new Date().toISOString(),
-          evidence: item.imageBase64 ? [{ id: "temp", image_url: `data:image/jpeg;base64,${item.imageBase64}`, created_at: "" }] : [],
-          ai_analysis: {
-            threat_level: "pending",
-            confidence_score: 0,
-            detected_objects: [],
-            ai_summary: "Awaiting sync..."
-          }
-        }));
-
       setIncidents([...pendingIncidents, ...liveIncidents]);
     } catch (err) {
-      setError("Could not load reports. Pull to retry when online.");
+      console.warn("Failed to load reports feed:", err);
     } finally {
       setLoading(false);
     }
@@ -122,6 +124,17 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
         <Txt variant="displayLg">Reports</Txt>
       </View>
 
+      {/* Offline Mode Banner */}
+      {isOfflineMode && (
+        <Card style={styles.offlineBanner}>
+          <WifiOff color={colors.warning} size={18} />
+          <View style={{ flex: 1 }}>
+            <Txt variant="bodySm" color={colors.warning} style={{ fontWeight: "bold" }}>Offline Mode</Txt>
+            <Txt variant="caption" color={colors.inkMuted}>Showing cached and pending reports. Pull to refresh when online.</Txt>
+          </View>
+        </Card>
+      )}
+
       {pendingCount > 0 && (
         <SpotlightCard variant="orange">
           <Eyebrow color="rgba(255,255,255,0.8)">Awaiting sync</Eyebrow>
@@ -130,16 +143,14 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
         </SpotlightCard>
       )}
 
-      {loading ? (
+      {loading && incidents.length === 0 ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: spacing.xxl }} />
-      ) : error ? (
-        <Card><Txt variant="body" color={colors.inkMuted}>{error}</Txt></Card>
       ) : incidents.length === 0 ? (
         <Card style={{ alignItems: "center", gap: spacing.sm, paddingVertical: spacing.xxl }}>
           <FileWarning color={colors.inkFaint} size={48} strokeWidth={1.4} />
-          <Txt variant="headline">No reports yet</Txt>
+          <Txt variant="headline">No reports available</Txt>
           <Txt variant="bodySm" color={colors.inkMuted} style={{ textAlign: "center" }}>
-            Submitted incidents will appear here and on the web dashboard.
+            Connect online to sync with the central watch command database.
           </Txt>
         </Card>
       ) : (
@@ -204,6 +215,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   thumbImg: { width: "100%", height: "100%" },
   footer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing.xxs },
   loc: { flexDirection: "row", alignItems: "center", gap: 5 },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.warning + "20",
+    backgroundColor: colors.warning + "05",
+    padding: spacing.md,
+    borderRadius: radius.lg,
+  },
   actionRow: {
     flexDirection: "row", justifyContent: "space-between", alignItems: "center",
     borderTopWidth: 1, borderTopColor: colors.hairline, paddingTop: spacing.sm, marginTop: spacing.xxs,

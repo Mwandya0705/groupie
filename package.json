@@ -9,7 +9,10 @@
   "scripts": {
     "mobile": "npm --workspace @fyp/mobile run dev",
     "web": "npm --workspace @fyp/web run dev",
-    "lint": "npm --workspace @fyp/web run lint"
+    "build": "npm --workspace @fyp/web run build",
+    "lint": "npm --workspace @fyp/web run lint",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "devDependencies": {
     "webidl-conversions": "^8.0.1"
@@ -22,6 +25,7 @@
     "metro-core": "0.81.5",
     "metro-resolver": "0.81.5",
     "metro-runtime": "0.81.5",
-    "react": "18.3.1"
+    "react": "18.3.1",
+    "react-native": "0.76.9"
   }
 }

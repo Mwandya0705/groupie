@@ -186,9 +186,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                     <div className="text-right">
                        <span className="text-[10px] font-bold text-inkmuted uppercase flex items-center gap-1 justify-end">
                         <Clock className="h-3 w-3" />
-                        {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(incident.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi' })}
                       </span>
-                      <p className="text-[9px] text-inkmuted mt-1 uppercase tracking-widest">{new Date(incident.created_at).toLocaleDateString()}</p>
+                      <p className="text-[9px] text-inkmuted mt-1 uppercase tracking-widest">{new Date(incident.created_at).toLocaleDateString([], { timeZone: 'Africa/Nairobi' })}</p>
                     </div>
                   </div>
                   <p className="text-xs text-inkmuted leading-relaxed mb-4 pl-14">{incident.description}</p>

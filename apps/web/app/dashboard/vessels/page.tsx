@@ -62,7 +62,7 @@ export default async function VesselsPage({ searchParams }: PageProps) {
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-inkmuted">Last Sighted</span>
-                <span className="text-inkmuted">{vessel.last_sighted ? new Date(vessel.last_sighted).toLocaleDateString() : "Never"}</span>
+                <span className="text-inkmuted">{vessel.last_sighted ? new Date(vessel.last_sighted).toLocaleDateString([], { timeZone: 'Africa/Nairobi' }) : "Never"}</span>
               </div>
             </div>
           </div>

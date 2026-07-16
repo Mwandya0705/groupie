@@ -107,7 +107,7 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Txt variant="bodyLg" numberOfLines={1}>{inc.type}</Txt>
-                  <Txt variant="caption" color={colors.inkMuted}>{new Date(inc.created_at).toLocaleString()}</Txt>
+                  <Txt variant="caption" color={colors.inkMuted}>{new Date(inc.created_at).toLocaleString([], { timeZone: "Africa/Nairobi" })}</Txt>
                 </View>
                 <StatusBadge label={(inc.ai_analysis?.threat_level ?? "n/a").toUpperCase()} tone={threatTone(inc.ai_analysis?.threat_level)} />
               </View>

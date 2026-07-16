@@ -81,8 +81,8 @@ export default async function AuditLogsPage() {
 
               <div className="flex items-center gap-6 md:text-right">
                 <div>
-                  <p className="text-sm font-bold text-inkmuted">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                  <p className="text-[10px] text-inkmuted font-bold uppercase tracking-widest mt-0.5">{new Date(log.created_at).toLocaleDateString()}</p>
+                  <p className="text-sm font-bold text-inkmuted">{new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi' })}</p>
+                  <p className="text-[10px] text-inkmuted font-bold uppercase tracking-widest mt-0.5">{new Date(log.created_at).toLocaleDateString([], { timeZone: 'Africa/Nairobi' })}</p>
                 </div>
                 <button className="h-10 w-10 rounded-xl bg-surface/50 flex items-center justify-center text-inkmuted hover:text-ink border border-hairline hover:border-hairline transition-all">
                   <ExternalLink className="h-4 w-4" />

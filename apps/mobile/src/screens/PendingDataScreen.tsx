@@ -143,7 +143,7 @@ export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
               />
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                 <Clock color={colors.inkFaint} size={13} />
-                <Txt variant="caption" color={colors.inkMuted}>{new Date(item.timestamp!).toLocaleTimeString()}</Txt>
+                <Txt variant="caption" color={colors.inkMuted}>{new Date(item.timestamp!).toLocaleTimeString([], { timeZone: "Africa/Nairobi" })}</Txt>
               </View>
             </View>
 

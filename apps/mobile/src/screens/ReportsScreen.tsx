@@ -53,14 +53,22 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
 
       // 2. Fetch live incidents or fallback to offline local cache
       let liveIncidents: IncidentRecord[] = [];
-      try {
-        liveIncidents = await fetchRecentIncidents(40);
-        await AsyncStorage.setItem(CACHED_INCIDENTS_KEY, JSON.stringify(liveIncidents));
-      } catch (err) {
+      if (!isOnline) {
         setIsOfflineMode(true);
         const cached = await AsyncStorage.getItem(CACHED_INCIDENTS_KEY);
         if (cached) {
           liveIncidents = JSON.parse(cached);
+        }
+      } else {
+        try {
+          liveIncidents = await fetchRecentIncidents(40);
+          await AsyncStorage.setItem(CACHED_INCIDENTS_KEY, JSON.stringify(liveIncidents));
+        } catch (err) {
+          setIsOfflineMode(true);
+          const cached = await AsyncStorage.getItem(CACHED_INCIDENTS_KEY);
+          if (cached) {
+            liveIncidents = JSON.parse(cached);
+          }
         }
       }
 
@@ -70,9 +78,9 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isOnline]);
 
-  useEffect(() => { load(); }, [load, pendingCount]);
+  useEffect(() => { load(); }, [load, pendingCount, isOnline]);
 
   const handleDelete = (id: string) => {
     const isPendingIncident = id.startsWith("local_") || id.startsWith("sim_");

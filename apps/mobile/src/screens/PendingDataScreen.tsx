@@ -12,9 +12,10 @@ type Props = {
   userId: string;
   isOnline: boolean;
   onChanged: () => void;
+  isAutoSyncing?: boolean;
 };
 
-export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
+export function PendingDataScreen({ userId, isOnline, onChanged, isAutoSyncing }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
@@ -28,7 +29,7 @@ export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, [load, isAutoSyncing]);
 
   const syncOne = async (item: PendingItem) => {
     if (!item.id) return;
@@ -105,6 +106,17 @@ export function PendingDataScreen({ userId, isOnline, onChanged }: Props) {
         </View>
         <StatusBadge label={`${items.length} QUEUED`} tone={items.length > 0 ? "warning" : "success"} />
       </View>
+
+      {/* Auto-Syncing Banner */}
+      {isAutoSyncing && (
+        <Card style={styles.syncingBanner}>
+          <ActivityIndicator color={colors.accent} size="small" />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt variant="bodySm" color={colors.accent} style={{ fontWeight: "bold" }}>Sending to dashboard...</Txt>
+            <Txt variant="caption" color={colors.inkMuted}>Uploading reports and generating AI observations.</Txt>
+          </View>
+        </Card>
+      )}
 
       {items.length > 0 && (
         <View style={{ gap: spacing.sm }}>
@@ -193,5 +205,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6,
     paddingVertical: spacing.sm, borderRadius: radius.pill,
     borderWidth: 1, borderColor: colors.danger + "55", backgroundColor: colors.danger + "11",
+  },
+  syncingBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.accent + "20",
+    backgroundColor: colors.accent + "05",
+    padding: spacing.md,
+    borderRadius: radius.lg,
   },
 });

@@ -178,7 +178,9 @@ export function ReportsScreen({ isOnline, pendingCount }: Props) {
                 </View>
                 {inc.ai_analysis && inc.ai_analysis.threat_level !== "pending" ? (
                   <Txt variant="caption" color={colors.accent}>AI {(inc.ai_analysis.confidence_score * 100).toFixed(0)}%</Txt>
-                ) : null}
+                ) : (
+                  <Txt variant="caption" color={colors.warning} style={{ fontWeight: "bold" }}>⚠️ Requires AI Analysis</Txt>
+                )}
               </View>
 
               <View style={styles.actionRow}>

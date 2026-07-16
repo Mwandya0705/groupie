@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ship, Search } from "lucide-react-native";
+import { Ship, Search, WifiOff } from "lucide-react-native";
 import { searchVessels } from "../services/vesselService";
 import { Vessel } from "../types/domain";
 import { Card, Txt, Eyebrow, Field, StatusBadge } from "../components";
 import { radius, spacing, Palette } from "../theme";
 import { useTheme } from "../theme/ThemeContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const CACHED_VESSELS_KEY = "cached_vessels_registry";
 
 export function VesselsScreen() {
   const { colors } = useTheme();
@@ -16,12 +19,49 @@ export function VesselsScreen() {
   const [vessels, setVessels] = useState<Vessel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   const load = useCallback(async (q: string) => {
     setLoading(true);
+    setError(null);
     try {
-      setError(null);
-      setVessels(await searchVessels(q));
+      if (q === "") {
+        try {
+          const allVessels = await searchVessels("");
+          await AsyncStorage.setItem(CACHED_VESSELS_KEY, JSON.stringify(allVessels));
+          setVessels(allVessels);
+          setIsOfflineMode(false);
+        } catch (err) {
+          const cached = await AsyncStorage.getItem(CACHED_VESSELS_KEY);
+          if (cached) {
+            setVessels(JSON.parse(cached));
+            setIsOfflineMode(true);
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        try {
+          const results = await searchVessels(q);
+          setVessels(results);
+          setIsOfflineMode(false);
+        } catch (err) {
+          setIsOfflineMode(true);
+          const cached = await AsyncStorage.getItem(CACHED_VESSELS_KEY);
+          if (cached) {
+            const allVessels: Vessel[] = JSON.parse(cached);
+            const filtered = allVessels.filter(
+              (v) =>
+                v.name.toLowerCase().includes(q.toLowerCase()) ||
+                v.registration_number.toLowerCase().includes(q.toLowerCase()) ||
+                (v.vessel_type && v.vessel_type.toLowerCase().includes(q.toLowerCase()))
+            );
+            setVessels(filtered);
+          } else {
+            throw err;
+          }
+        }
+      }
     } catch {
       setError("Could not reach vessel registry. Check your connection.");
     } finally {
@@ -52,6 +92,17 @@ export function VesselsScreen() {
         <Txt variant="displayLg">Vessels</Txt>
       </View>
 
+      {/* Offline Mode Banner */}
+      {isOfflineMode && (
+        <Card style={styles.offlineBanner}>
+          <WifiOff color={colors.warning} size={18} />
+          <View style={{ flex: 1 }}>
+            <Txt variant="bodySm" color={colors.warning} style={{ fontWeight: "bold" }}>Offline Mode</Txt>
+            <Txt variant="caption" color={colors.inkMuted}>Viewing cached watch registry. Search is filtering offline records.</Txt>
+          </View>
+        </Card>
+      )}
+
       <Field
         placeholder="Search by name or registration #"
         value={query}
@@ -59,7 +110,7 @@ export function VesselsScreen() {
         autoCapitalize="characters"
       />
 
-      {loading ? (
+      {loading && vessels.length === 0 ? (
         <ActivityIndicator color={colors.accent} style={{ marginTop: spacing.xl }} />
       ) : error ? (
         <Card><Txt variant="body" color={colors.inkMuted}>{error}</Txt></Card>
@@ -91,4 +142,14 @@ export function VesselsScreen() {
 const makeStyles = (colors: Palette) => StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   glyph: { width: 42, height: 42, borderRadius: radius.md, backgroundColor: colors.surface2, alignItems: "center", justifyContent: "center" },
+  offlineBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.warning + "20",
+    backgroundColor: colors.warning + "05",
+    padding: spacing.md,
+    borderRadius: radius.lg,
+  },
 });
